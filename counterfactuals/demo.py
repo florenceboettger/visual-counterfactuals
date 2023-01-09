@@ -30,7 +30,11 @@ def main():
         os.path.join(dirpath, "counterfactuals.npy"), allow_pickle=True
     ).item()
 
-    for idx in np.random.choice(list(counterfactuals.keys()), 5):
+    experiment_name = os.path.basename(args.config_path).split(".")[0]
+    dirpath = os.path.join(Path.output_root_dir(), experiment_name, "examples")
+    os.makedirs(dirpath, exist_ok=True)
+
+    for idx in np.random.choice(list(counterfactuals.keys()), 10):
         cf = counterfactuals[idx]
 
         visualize_counterfactuals(
@@ -39,7 +43,7 @@ def main():
             distractor_index=cf["distractor_index"],
             dataset=dataset,
             n_pix=7,
-            fname=f"example_{idx}.png",
+            fname=f"output/{experiment_name}/examples/example_{idx}.png",
         )
 
 

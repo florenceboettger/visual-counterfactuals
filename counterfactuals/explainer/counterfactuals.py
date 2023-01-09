@@ -18,8 +18,12 @@ def compute_counterfactual(
     query_aux_features,
     distractor_aux_features,
     lambd,
+    lambd2,
     temperature,
     topk,
+    query_parts,
+    distractor_parts,
+    mode,
 ):
     """
     args:
@@ -31,7 +35,11 @@ def compute_counterfactual(
         distractor_aux_features: distractor auxiliary feature repr
             (N x dim_aux x n_pix x n_pix)
         lambd: lambda loss balancing weight
+        lambd: secondary lambda loss balancing weight
         topk: only use top-k most similar cells
+        query_parts: query semantic classes (n_pix x n_pix x n_classes)
+        distractor_parts: distractor semantic classes (N x n_pix x n_pix x n_classes)
+        mode: mode by which to compute loss
 
     return:
         edits: list of edits that flip model's prediction
@@ -63,6 +71,11 @@ def compute_counterfactual(
     else:
         query_aux_features_fl, distractor_aux_features_fl = None, None
 
+    # flatten parts
+    n_classes = query_parts.shape[2]
+    query_parts_fl = query_parts.reshape(-1, n_classes)
+    distractor_parts_fl = distractor_parts.reshape(-1, n_classes)
+
     # determine all possible edits
     query_edits = (
         np.arange(query_fl.shape[0] * distractor_fl.shape[0]) // distractor_fl.shape[0]
@@ -86,11 +99,11 @@ def compute_counterfactual(
 
     # loop until prediction changes
     while (
-        torch.argmax(
+        (torch.argmax(
             classification_head(current.t().contiguous().view(1, n_feat, n_pix, n_pix)),
             dim=1,
         )
-        != distractor_class
+        != distractor_class) and (len(list_of_edits) < 10)
     ):
         # find next best cell replacement
         query_cell, distractor_cell = _find_single_best_edit(
@@ -100,9 +113,13 @@ def compute_counterfactual(
             classification_head,
             query_aux_features_fl,
             distractor_aux_features_fl,
+            query_parts_fl,
+            distractor_parts_fl,
             lambd=lambd,
+            lambd2=lambd2,
             dims=(n_feat, n_pix, n_pixels),
             temperature=temperature,
+            mode=mode,
         )
 
         # update variables
@@ -165,9 +182,13 @@ def _find_single_best_edit(
     classification_head,
     query_aux_features,
     distractor_aux_features,
+    query_parts_fl,
+    distractor_parts_fl,
     lambd,
+    lambd2,
     dims,
     temperature,
+    mode,
 ):
     """
     Find next single best edit.
@@ -180,9 +201,13 @@ def _find_single_best_edit(
         classification_head: the classification head
         query_aux_features: auxiliary features query
         distractor_aux_features: auxiliary features distractor
+        query_parts_fl: semantic classes query
+        distractor_parts_fl: semantic classes distractor
         lambd: weight to balance the losses
+        lambd2: secondary weight to balance the losses
         dims: features_dim, n_pix, n_pixels
         temperature: softmax temperature
+        mode: mode by which to compute loss
 
     return:
         edit_query, edit_distractor: single best edit based on loss objective
@@ -232,7 +257,16 @@ def _find_single_best_edit(
         # log-space
         optim_consistency = np.log(optim_consistency)
 
+        # compute product of semantic classes
+        semantic_similarity = torch.matmul(query_parts_fl, distractor_parts_fl.t())
+        optim_semantic = torch.tensor(np.array([semantic_similarity[v] for v in all_edits])).clamp(max=1).numpy()
+
         optim_total = optim_class + lambd * optim_consistency
+
+        if mode == "multiplicative":
+            optim_total = optim_class * optim_semantic
+        elif mode == "additive":
+            optim_total = optim_class + lambd * optim_consistency + lambd2 * optim_semantic
 
     else:
         optim_total = optim_class

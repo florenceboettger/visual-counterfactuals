@@ -75,6 +75,7 @@ def process_dataset(model, dataloader, device):
     features = []
     preds = []
     targets = []
+    parts = []
 
     for batch in dataloader:
         images, target = batch["image"].to(device), batch["target"].to(device)
@@ -84,10 +85,12 @@ def process_dataset(model, dataloader, device):
         features.append(output["features"].cpu())
         targets.append(target.cpu())
         preds.append(torch.argmax(output["logits"], dim=1).cpu())
+        parts.append(batch["parts"].cpu())
 
     features = torch.cat(features, dim=0)
     preds = torch.cat(preds, dim=0)
     targets = torch.cat(targets, dim=0)
+    parts = torch.cat(parts, dim=0)
 
     confusion_mat = confusion_matrix(targets.numpy(), preds.numpy())
 
@@ -97,6 +100,7 @@ def process_dataset(model, dataloader, device):
         "targets": targets,
         "top1": top1.compute(),
         "confusion_matrix": confusion_mat,
+        "parts": parts,
     }
 
     return result

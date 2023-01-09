@@ -6,6 +6,7 @@
 
 import argparse
 import os
+import csv
 
 import model.auxiliary_model as auxiliary_model
 import numpy as np
@@ -27,6 +28,10 @@ from utils.path import Path
 
 parser = argparse.ArgumentParser(description="Generate counterfactual explanations")
 parser.add_argument("--config_path", type=str, required=True)
+parser.add_argument("--mode", choices=["multiplicative", "additive"])
+parser.add_argument("--lambd", type=float)
+parser.add_argument("--lambd2", type=float)
+parser.add_argument("--index", type=int)
 
 
 def main():
@@ -38,6 +43,7 @@ def main():
 
     experiment_name = os.path.basename(args.config_path).split(".")[0]
     dirpath = os.path.join(Path.output_root_dir(), experiment_name)
+    dirpath = os.path.join(Path.output_root_dir(), "batch", f"{experiment_name}-{args.mode}-{args.lambd}-{args.lambd2}")
     os.makedirs(dirpath, exist_ok=True)
 
     # create dataset
@@ -67,6 +73,7 @@ def main():
     features = result["features"]
     preds = result["preds"].numpy()
     targets = result["targets"].numpy()
+    parts = result["parts"]
     print("Top-1 accuracy: {:.2f}".format(100 * result["top1"]))
 
     # compute query-distractor pairs
@@ -89,7 +96,7 @@ def main():
         print("Pre-compute auxiliary features for soft constraint")
         aux_model, aux_dim, n_pix = auxiliary_model.get_auxiliary_model()
         aux_transform = get_imagenet_test_transform()
-        aux_dataset = get_test_dataset(transform=aux_transform, return_image_only=True)
+        aux_dataset = get_test_dataset(transform=aux_transform, return_image_only=True, blank=True)
         aux_loader = get_test_dataloader(config, aux_dataset)
 
         auxiliary_features = auxiliary_model.process_dataset(
@@ -114,6 +121,7 @@ def main():
 
         # gather query features
         query = features[query_index]  # dim x n_row x n_row
+        query_parts = torch.permute(parts[query_index], (1, 2, 0)) # 7 x 7 x n_classes
         query_pred = preds[query_index]
         if query_pred != targets[query_index]:
             continue  # skip if query classified incorrect
@@ -138,6 +146,7 @@ def main():
                 continue  # skip if no distractors classified correct
 
         distractor = torch.stack([features[jj] for jj in distractor_index], dim=0)
+        distractor_parts = torch.stack([parts[jj] for jj in distractor_index], dim=0).permute(0, 2, 3, 1) # N x 7 x 7 x n_classes
 
         # soft constraint uses auxiliary features
         if use_auxiliary_features:
@@ -154,24 +163,28 @@ def main():
             distractor_aux_features = None
 
         # compute counterfactual
-        try:
-            list_of_edits = compute_counterfactual(
-                query=query,
-                distractor=distractor,
-                classification_head=classifier_head,
-                distractor_class=distractor_target,
-                query_aux_features=query_aux_features,
-                distractor_aux_features=distractor_aux_features,
-                lambd=config["counterfactuals_kwargs"]["lambd"],
-                temperature=config["counterfactuals_kwargs"]["temperature"],
-                topk=config["counterfactuals_kwargs"]["topk"]
-                if "topk" in config["counterfactuals_kwargs"].keys()
-                else None,
-            )
+        # try:
+        list_of_edits = compute_counterfactual(
+            query=query,
+            distractor=distractor,
+            classification_head=classifier_head,
+            distractor_class=distractor_target,
+            query_aux_features=query_aux_features,
+            distractor_aux_features=distractor_aux_features,
+            lambd=config["counterfactuals_kwargs"]["lambd"] if args.lambd is None else args.lambd,
+            lambd2=args.lambd2,
+            temperature=config["counterfactuals_kwargs"]["temperature"],
+            topk=config["counterfactuals_kwargs"]["topk"]
+            if "topk" in config["counterfactuals_kwargs"].keys()
+            else None,
+            query_parts = query_parts,
+            distractor_parts = distractor_parts,
+            mode=args.mode,
+        )
 
-        except BaseException:
+        """except BaseException:
             print("warning - no counterfactual @ index {}".format(query_index))
-            continue
+            continue"""
 
         counterfactuals[query_index] = {
             "query_index": query_index,
@@ -197,6 +210,22 @@ def main():
     print("Eval results single edit: {}".format(result["single_edit"]))
     print("Eval results all edits: {}".format(result["all_edit"]))
 
+    result_path = os.path.join(Path.output_root_dir(), "new_results", f"{args.index}.csv")
+
+    if args.index is not None:
+        with open(result_path, "w") as f:
+            writer = csv.DictWriter(f, fieldnames=["id", "mode", "lambd", "lambd2", "avg_edits", "eval_single", "eval_all"])
+            writer.writeheader()
+            writer.writerow({
+                "id": args.index,
+                "mode": args.mode,
+                "lambd": args.lambd,
+                "lambd2": args.lambd2,
+                "avg_edits": average_num_edits,
+                "eval_single": result["single_edit"],
+                "eval_all": result["all_edit"],
+            })
+        
 
 if __name__ == "__main__":
     main()

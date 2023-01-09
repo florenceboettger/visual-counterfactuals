@@ -34,6 +34,7 @@ class Cub(Dataset):
         transform=None,
         loader=default_loader,
         return_image_only=False,
+        blank=False,
     ):
 
         self._dataset_folder = pathlib.Path(Path.db_root_dir("CUB"))
@@ -42,6 +43,7 @@ class Cub(Dataset):
         self._train = train
         self._class_name_index = {}
         self._return_image_only = return_image_only
+        self._blank = blank
 
         if not self._check_dataset_folder():
             raise RuntimeError(
@@ -133,6 +135,29 @@ class Cub(Dataset):
             11: "throat",
         }
 
+        '''parts_name_remap = {
+            "back": "back",
+            "beak": "none",
+            "belly": "none",
+            "breast": "none",
+            "crown": "none",
+            "forehead": "none",
+            "left eye": "none",
+            "left leg": "none",
+            "left wing": "none",
+            "nape": "none",
+            "right eye": "none",
+            "right leg": "none",
+            "right wing": "none",
+            "tail": "none",
+            "throat": "none",
+        }
+
+        self._parts_name_index = {
+            0: "back",
+            -1: "none"
+        }'''
+
         self._inverse_parts_name_index = {
             value: key for key, value in self._parts_name_index.items()
         }
@@ -185,6 +210,9 @@ class Cub(Dataset):
 
         image = self._loader(path)
         width, height = image.size
+
+        if self._blank:
+            image.putdata([(0, 0, 0, 1)] * (width * height))
 
         # return image only
         if self._return_image_only:
@@ -247,7 +275,8 @@ class Cub(Dataset):
             x_coord = int(part_loc[0] // n_pix_per_cell_w)
             y_coord = int(part_loc[1] // n_pix_per_cell_h)
             new_part_id = self._parts_index_remap[part_id]
-            parts[new_part_id, y_coord, x_coord] = 1
+            if new_part_id != -1:
+                parts[new_part_id, y_coord, x_coord] = 1
 
         output = {
             "image": sample["image"],

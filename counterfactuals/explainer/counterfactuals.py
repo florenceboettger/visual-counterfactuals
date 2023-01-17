@@ -35,7 +35,7 @@ def compute_counterfactual(
         distractor_aux_features: distractor auxiliary feature repr
             (N x dim_aux x n_pix x n_pix)
         lambd: lambda loss balancing weight
-        lambd: secondary lambda loss balancing weight
+        lambd2: secondary lambda loss balancing weight
         topk: only use top-k most similar cells
         query_parts: query semantic classes (n_pix x n_pix x n_classes)
         distractor_parts: distractor semantic classes (N x n_pix x n_pix x n_classes)
@@ -117,7 +117,7 @@ def compute_counterfactual(
             distractor_parts_fl,
             lambd=lambd,
             lambd2=lambd2,
-            dims=(n_feat, n_pix, n_pixels),
+            dims=(n_feat, n_pix, n_classes, n_pixels),
             temperature=temperature,
             mode=mode,
         )
@@ -205,7 +205,7 @@ def _find_single_best_edit(
         distractor_parts_fl: semantic classes distractor
         lambd: weight to balance the losses
         lambd2: secondary weight to balance the losses
-        dims: features_dim, n_pix, n_pixels
+        dims: features_dim, n_pix, n_classes, n_pixels
         temperature: softmax temperature
         mode: mode by which to compute loss
 
@@ -217,7 +217,7 @@ def _find_single_best_edit(
     """
     # compute classification loss via classifier head
     classification_head.eval()
-    n_feat, n_pix, _ = dims
+    n_feat, n_pix, n_classes, n_pixels = dims
 
     logits_class = classification_head(
         torch.transpose(all_combinations, 1, 2)
@@ -258,15 +258,16 @@ def _find_single_best_edit(
         optim_consistency = np.log(optim_consistency)
 
         # compute product of semantic classes
-        semantic_similarity = torch.matmul(query_parts_fl, distractor_parts_fl.t())
-        optim_semantic = torch.tensor(np.array([semantic_similarity[v] for v in all_edits])).clamp(max=1).numpy()
-
-        optim_total = optim_class + lambd * optim_consistency
+        # semantic_class_similarity = torch.matmul(query_parts_fl, distractor_parts_fl.t())
+        semantic_class_product = torch.mul(query_parts_fl.flatten()[:, None], distractor_parts_fl.flatten()[None, :])
+        semantic_class_diags = semantic_class_product.reshape(n_pixels, n_classes, -1, n_classes).permute(0, 2, 1, 3).reshape(-1, n_classes, n_classes)
+        semantic_class_similarity = torch.diagonal(semantic_class_diags, dim1=1, dim2=2).max(1).values.reshape(n_pixels, -1)
+        optim_semantic_class = torch.tensor(np.array([semantic_class_similarity[v] for v in all_edits])).clamp(max=1).numpy()
 
         if mode == "multiplicative":
-            optim_total = optim_class * optim_semantic
+            optim_total = optim_class * optim_semantic_class
         elif mode == "additive":
-            optim_total = optim_class + lambd * optim_consistency + lambd2 * optim_semantic
+            optim_total = optim_class + lambd * optim_consistency + lambd2 * optim_semantic_class
 
     else:
         optim_total = optim_class

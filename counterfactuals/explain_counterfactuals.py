@@ -10,6 +10,7 @@ import csv
 
 import model.auxiliary_model as auxiliary_model
 import numpy as np
+import optuna
 import torch
 import yaml
 
@@ -28,26 +29,58 @@ from utils.path import Path
 
 parser = argparse.ArgumentParser(description="Generate counterfactual explanations")
 parser.add_argument("--config_path", type=str, required=True)
+parser.add_argument("--index", type=str, required=True)
 parser.add_argument("--mode", choices=["multiplicative", "additive"])
 parser.add_argument("--lambd", type=float)
 parser.add_argument("--lambd2", type=float)
-parser.add_argument("--index", type=int)
+parser.add_argument("--mask_type", choices=["binary", "distance"])
+parser.add_argument("--train", action="store_true")
 
 
 def main():
     args = parser.parse_args()
 
+    if args.train:
+        study = optuna.create_study(
+            study_name="optimize_counterfactuals",
+            direction="maximize",
+            storage="sqlite:///optimize-counterfactuals.db",
+            load_if_exists=True
+        )
+        study.optimize(optimize_counterfactuals, n_trials=20, n_jobs=1)
+    else:        
+        explain_counterfactuals(
+            config_path=args.config_path,
+            index=args.index,
+            mode=args.mode,
+            lambd=args.lambd,
+            lambd2=args.lambd2,
+            mask_type=args.mask_type,
+    )
+
+
+def optimize_counterfactuals(trial):
+    return explain_counterfactuals(
+        config_path="visual-counterfactuals/counterfactuals/configs/counterfactuals/counterfactuals_ours_cub_vgg16_semantic_class.yaml",
+        index=f"optuna-{trial.number}",
+        mode="additive",
+        lambd=trial.suggest_float("lambd", 0.0, 3.0),
+        lambd2=trial.suggest_float("lambd2", 0.0, 3.0),
+        mask_type=trial.suggest_categorical("mask_type", ["binary", "distance"])
+    )
+
+
+def explain_counterfactuals(config_path, index, mode, lambd, lambd2, mask_type):
     # parse args
-    with open(args.config_path, "r") as stream:
+    with open(config_path, "r") as stream:
         config = yaml.safe_load(stream)
 
-    experiment_name = os.path.basename(args.config_path).split(".")[0]
-    dirpath = os.path.join(Path.output_root_dir(), experiment_name)
-    dirpath = os.path.join(Path.output_root_dir(), "batch", f"{experiment_name}-{args.mode}-{args.lambd}-{args.lambd2}")
+    experiment_name = os.path.basename(config_path).split(".")[0]
+    dirpath = os.path.join(Path.output_root_dir(), "batch", f"{index}_{mode}_{lambd}_{lambd2}_{mask_type}")
     os.makedirs(dirpath, exist_ok=True)
 
     # create dataset
-    dataset = get_test_dataset(transform=get_test_transform())
+    dataset = get_test_dataset(transform=get_test_transform(), mask_type=mask_type)
     dataloader = get_test_dataloader(config, dataset)
 
     # device
@@ -96,7 +129,7 @@ def main():
         print("Pre-compute auxiliary features for soft constraint")
         aux_model, aux_dim, n_pix = auxiliary_model.get_auxiliary_model()
         aux_transform = get_imagenet_test_transform()
-        aux_dataset = get_test_dataset(transform=aux_transform, return_image_only=True, blank=True)
+        aux_dataset = get_test_dataset(transform=aux_transform, return_image_only=True)
         aux_loader = get_test_dataloader(config, aux_dataset)
 
         auxiliary_features = auxiliary_model.process_dataset(
@@ -171,15 +204,15 @@ def main():
             distractor_class=distractor_target,
             query_aux_features=query_aux_features,
             distractor_aux_features=distractor_aux_features,
-            lambd=config["counterfactuals_kwargs"]["lambd"] if args.lambd is None else args.lambd,
-            lambd2=args.lambd2,
+            lambd=config["counterfactuals_kwargs"]["lambd"] if lambd is None else lambd,
+            lambd2=lambd2,
             temperature=config["counterfactuals_kwargs"]["temperature"],
             topk=config["counterfactuals_kwargs"]["topk"]
             if "topk" in config["counterfactuals_kwargs"].keys()
             else None,
             query_parts = query_parts,
             distractor_parts = distractor_parts,
-            mode=args.mode,
+            mode=mode,
         )
 
         """except BaseException:
@@ -204,27 +237,30 @@ def main():
 
     result = compute_eval_metrics(
         counterfactuals,
-        dataset=dataset,
+        dataset=get_test_dataset(transform=get_test_transform(), mask_type="binary"),
     )
 
     print("Eval results single edit: {}".format(result["single_edit"]))
     print("Eval results all edits: {}".format(result["all_edit"]))
 
-    result_path = os.path.join(Path.output_root_dir(), "new_results", f"{args.index}.csv")
+    result_path = os.path.join(Path.output_root_dir(), "new_results", f"{index}.csv")
 
-    if args.index is not None:
+    if index is not None:
         with open(result_path, "w") as f:
-            writer = csv.DictWriter(f, fieldnames=["id", "mode", "lambd", "lambd2", "avg_edits", "eval_single", "eval_all"])
+            writer = csv.DictWriter(f, fieldnames=["id", "mode", "lambd", "lambd2", "mask_type", "avg_edits", "eval_single", "eval_all"])
             writer.writeheader()
             writer.writerow({
-                "id": args.index,
-                "mode": args.mode,
-                "lambd": args.lambd,
-                "lambd2": args.lambd2,
+                "id": index,
+                "mode": mode,
+                "lambd": lambd,
+                "lambd2": lambd2,
+                "mask_type": mask_type,
                 "avg_edits": average_num_edits,
                 "eval_single": result["single_edit"],
                 "eval_all": result["all_edit"],
             })
+
+    return result["all_edit"]["Same-KP"]
         
 
 if __name__ == "__main__":

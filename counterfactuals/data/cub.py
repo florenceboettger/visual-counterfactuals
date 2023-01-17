@@ -4,6 +4,7 @@
 # This source code is licensed under the license found in the
 # LICENSE file in the root directory of this source tree.
 
+import math
 import pathlib
 
 import numpy as np
@@ -35,6 +36,8 @@ class Cub(Dataset):
         loader=default_loader,
         return_image_only=False,
         blank=False,
+        n_row=7,
+        mask_type="binary",
     ):
 
         self._dataset_folder = pathlib.Path(Path.db_root_dir("CUB"))
@@ -44,6 +47,8 @@ class Cub(Dataset):
         self._class_name_index = {}
         self._return_image_only = return_image_only
         self._blank = blank
+        self._n_row = n_row
+        self._mask_type = mask_type
 
         if not self._check_dataset_folder():
             raise RuntimeError(
@@ -193,6 +198,37 @@ class Cub(Dataset):
                 return False
         return True
 
+    def _get_parts_matrix(self, sample):
+        # return parts as binary mask on 7 x 7 grid to ease evaluation
+        part_locs = sample["part_locs"]
+        part_ids = sample["part_ids"]
+        n_pix_per_cell_h = sample["image"].shape[1] // self._n_row
+        n_pix_per_cell_w = sample["image"].shape[2] // self._n_row
+        parts = np.zeros((len(self.parts_name_index), self._n_row, self._n_row), dtype=np.uint8)
+        if self._mask_type == "binary":
+            for part_loc, part_id in zip(part_locs, part_ids):
+                x_coord = int(part_loc[0] // n_pix_per_cell_w)
+                y_coord = int(part_loc[1] // n_pix_per_cell_h)
+                new_part_id = self._parts_index_remap[part_id]
+                if new_part_id != -1:
+                    parts[new_part_id, y_coord, x_coord] = 1
+        elif self._mask_type == "distance":
+            for part_loc, part_id in zip(part_locs, part_ids):
+                new_part_id = self._parts_index_remap[part_id]
+                if new_part_id == -1:
+                    continue
+                x_coord_part = part_loc[0]
+                y_coord_part = part_loc[1]
+                for cell_x, cell_y in np.ndindex(self._n_row, self._n_row):
+                    x_coord_cell = cell_x * n_pix_per_cell_w
+                    y_coord_cell = cell_y * n_pix_per_cell_h
+                    dx = max(x_coord_cell - x_coord_part, 0, x_coord_part - x_coord_cell - n_pix_per_cell_w)
+                    dy = max(y_coord_cell - y_coord_part, 0, y_coord_part - y_coord_cell - n_pix_per_cell_h)
+                    dist = math.sqrt(dx * dx + dy * dy) / n_pix_per_cell_w
+                    dist_value = max(0, 1 - dist)
+                    parts[new_part_id, cell_x, cell_y] = dist_value
+        return parts
+
     @property
     def class_name_index(self):
         return self._class_name_index
@@ -265,18 +301,7 @@ class Cub(Dataset):
                 "part_ids": part_ids,
             }
 
-        # return parts as binary mask on 7 x 7 grid to ease evaluation
-        part_locs = sample["part_locs"]
-        part_ids = sample["part_ids"]
-        n_pix_per_cell_h = sample["image"].shape[1] // 7
-        n_pix_per_cell_w = sample["image"].shape[2] // 7
-        parts = np.zeros((len(self.parts_name_index), 7, 7), dtype=np.uint8)
-        for part_loc, part_id in zip(part_locs, part_ids):
-            x_coord = int(part_loc[0] // n_pix_per_cell_w)
-            y_coord = int(part_loc[1] // n_pix_per_cell_h)
-            new_part_id = self._parts_index_remap[part_id]
-            if new_part_id != -1:
-                parts[new_part_id, y_coord, x_coord] = 1
+        parts = self._get_parts_matrix(sample)
 
         output = {
             "image": sample["image"],

@@ -28,8 +28,8 @@ def get_train_dataset(transform, return_image_only=False):
     return Cub(train=True, transform=transform, return_image_only=return_image_only)
 
 
-def get_test_dataset(transform, return_image_only=False, blank=False):
-    return Cub(train=False, transform=transform, return_image_only=return_image_only, blank=blank)
+def get_test_dataset(transform, return_image_only=False, blank=False, mask_type = "binary"):
+    return Cub(train=False, transform=transform, return_image_only=return_image_only, blank=blank, mask_type = mask_type)
 
 
 def get_train_transform():

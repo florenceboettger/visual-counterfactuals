@@ -15,14 +15,13 @@ from utils.visualize import visualize_counterfactuals
 
 
 parser = argparse.ArgumentParser(description="Visualize counterfactual explanations")
-parser.add_argument("--config_path", type=str, required=True)
+parser.add_argument("--input_path", type=str, required=True)
 
 
 def main():
     args = parser.parse_args()
 
-    experiment_name = os.path.basename(args.config_path).split(".")[0]
-    dirpath = os.path.join(Path.output_root_dir(), experiment_name)
+    dirpath = os.path.join(Path.output_root_dir(), args.input_path)
 
     dataset = get_test_dataset(get_vis_transform(), return_image_only=True)
 
@@ -30,9 +29,8 @@ def main():
         os.path.join(dirpath, "counterfactuals.npy"), allow_pickle=True
     ).item()
 
-    experiment_name = os.path.basename(args.config_path).split(".")[0]
-    dirpath = os.path.join(Path.output_root_dir(), experiment_name, "examples")
-    os.makedirs(dirpath, exist_ok=True)
+    dirpath_output = os.path.join(Path.output_root_dir(), "examples", args.input_path)
+    os.makedirs(dirpath_output, exist_ok=True)
 
     for idx in np.random.choice(list(counterfactuals.keys()), 10):
         cf = counterfactuals[idx]
@@ -43,7 +41,7 @@ def main():
             distractor_index=cf["distractor_index"],
             dataset=dataset,
             n_pix=7,
-            fname=f"output/{experiment_name}/examples/example_{idx}.png",
+            fname=f"output/examples/{args.input_path}/example_{idx}.png",
         )
 
 

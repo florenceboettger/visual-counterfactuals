@@ -27,6 +27,10 @@ def visualize_counterfactuals(
     # create plot
     n_edits = len(edits)
     _, axes = plt.subplots(n_edits, 2)
+    if n_edits == 1:
+        axes = [axes]
+    print(n_edits)
+    print(axes)
 
     # loop over edits
     for ii, edit in enumerate(edits):

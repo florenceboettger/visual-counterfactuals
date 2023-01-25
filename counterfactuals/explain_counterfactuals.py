@@ -34,20 +34,27 @@ parser.add_argument("--mode", choices=["multiplicative", "additive"])
 parser.add_argument("--lambd", type=float)
 parser.add_argument("--lambd2", type=float)
 parser.add_argument("--mask_type", choices=["binary", "distance"])
+parser.add_argument("--parts_type", choices=["full", "minimize_head"])
 parser.add_argument("--train", action="store_true")
 
 
-def main():
+def main():    
+    assert torch.cuda.is_available()
     args = parser.parse_args()
 
     if args.train:
         study = optuna.create_study(
-            study_name="optimize_counterfactuals",
-            direction="maximize",
-            storage="sqlite:///optimize-counterfactuals.db",
-            load_if_exists=True
+            study_name="optimize_counterfactuals_full_lower_range",
+            directions=["maximize", "minimize"],
+            storage="sqlite:///optimize_counterfactuals_full.db",
+            load_if_exists=True,
         )
-        study.optimize(optimize_counterfactuals, n_trials=20, n_jobs=1)
+        study.optimize(
+            optimize_counterfactuals,
+            n_trials=50,
+            n_jobs=1,            
+            callbacks=[optuna.study.MaxTrialsCallback(200, states=(optuna.trial.TrialState.COMPLETE,))],
+        )
     else:        
         explain_counterfactuals(
             config_path=args.config_path,
@@ -56,31 +63,33 @@ def main():
             lambd=args.lambd,
             lambd2=args.lambd2,
             mask_type=args.mask_type,
+            parts_type=args.parts_type,
     )
 
 
 def optimize_counterfactuals(trial):
     return explain_counterfactuals(
         config_path="visual-counterfactuals/counterfactuals/configs/counterfactuals/counterfactuals_ours_cub_vgg16_semantic_class.yaml",
-        index=f"optuna-{trial.number}",
-        mode="additive",
-        lambd=trial.suggest_float("lambd", 0.0, 3.0),
-        lambd2=trial.suggest_float("lambd2", 0.0, 3.0),
-        mask_type=trial.suggest_categorical("mask_type", ["binary", "distance"])
+        index=f"optimize_counterfactuals_full_{trial.number}",
+        mode=trial.suggest_categorical("mode", ["multiplicative", "additive"]),
+        lambd=trial.suggest_float("lambd", 0.0, 10.0),
+        lambd2=trial.suggest_float("lambd2", 0.0, 10.0),
+        mask_type=trial.suggest_categorical("mask_type", ["binary", "distance"]),
+        parts_type=trial.suggest_categorical("parts_type", ["full", "minimize_head"])
     )
 
 
-def explain_counterfactuals(config_path, index, mode, lambd, lambd2, mask_type):
+def explain_counterfactuals(config_path, index, mode, lambd, lambd2, mask_type, parts_type):
+    print(f"Beginning counterfactual search {index}, mode={mode}, lambd={lambd}, lambd2={lambd2}, mask_type={mask_type}, parts_type={parts_type}")
     # parse args
     with open(config_path, "r") as stream:
         config = yaml.safe_load(stream)
 
-    experiment_name = os.path.basename(config_path).split(".")[0]
     dirpath = os.path.join(Path.output_root_dir(), "batch", f"{index}_{mode}_{lambd}_{lambd2}_{mask_type}")
     os.makedirs(dirpath, exist_ok=True)
 
     # create dataset
-    dataset = get_test_dataset(transform=get_test_transform(), mask_type=mask_type)
+    dataset = get_test_dataset(transform=get_test_transform(), mask_type=mask_type, parts_type=parts_type)
     dataloader = get_test_dataloader(config, dataset)
 
     # device
@@ -148,7 +157,7 @@ def explain_counterfactuals(config_path, index, mode, lambd, lambd2, mask_type):
     print("Compute counterfactuals")
     counterfactuals = {}
 
-    for query_index in tqdm(range(len(dataset))):
+    for query_index in range(len(dataset)):
         if query_index not in query_distractor_pairs.keys():
             continue  # skips images that were classified incorrectly
 
@@ -237,7 +246,7 @@ def explain_counterfactuals(config_path, index, mode, lambd, lambd2, mask_type):
 
     result = compute_eval_metrics(
         counterfactuals,
-        dataset=get_test_dataset(transform=get_test_transform(), mask_type="binary"),
+        dataset=get_test_dataset(transform=get_test_transform(), mask_type="binary", parts_type="full"),
     )
 
     print("Eval results single edit: {}".format(result["single_edit"]))
@@ -247,7 +256,7 @@ def explain_counterfactuals(config_path, index, mode, lambd, lambd2, mask_type):
 
     if index is not None:
         with open(result_path, "w") as f:
-            writer = csv.DictWriter(f, fieldnames=["id", "mode", "lambd", "lambd2", "mask_type", "avg_edits", "eval_single", "eval_all"])
+            writer = csv.DictWriter(f, fieldnames=["id", "mode", "lambd", "lambd2", "mask_type", "parts_type", "avg_edits", "eval_single", "eval_all"])
             writer.writeheader()
             writer.writerow({
                 "id": index,
@@ -255,12 +264,13 @@ def explain_counterfactuals(config_path, index, mode, lambd, lambd2, mask_type):
                 "lambd": lambd,
                 "lambd2": lambd2,
                 "mask_type": mask_type,
+                "parts_type": parts_type,
                 "avg_edits": average_num_edits,
                 "eval_single": result["single_edit"],
                 "eval_all": result["all_edit"],
             })
 
-    return result["all_edit"]["Same-KP"]
+    return result["all_edit"]["Near-KP"], average_num_edits
         
 
 if __name__ == "__main__":

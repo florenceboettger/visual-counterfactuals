@@ -38,6 +38,7 @@ class Cub(Dataset):
         blank=False,
         n_row=7,
         mask_type="binary",
+        parts_type="full"
     ):
 
         self._dataset_folder = pathlib.Path(Path.db_root_dir("CUB"))
@@ -49,6 +50,7 @@ class Cub(Dataset):
         self._blank = blank
         self._n_row = n_row
         self._mask_type = mask_type
+        self._parts_type = parts_type
 
         if not self._check_dataset_folder():
             raise RuntimeError(
@@ -107,38 +109,68 @@ class Cub(Dataset):
         )
 
         # define remapping for part instances to merge left-right instances
-        parts_name_remap = {
-            "back": "back",
-            "beak": "beak",
-            "belly": "belly",
-            "breast": "breast",
-            "crown": "crown",
-            "forehead": "forehead",
-            "left eye": "eye",
-            "left leg": "leg",
-            "left wing": "wing",
-            "nape": "nape",
-            "right eye": "eye",
-            "right leg": "leg",
-            "right wing": "wing",
-            "tail": "tail",
-            "throat": "throat",
-        }
+        parts_name_remap = {}
+        if self._parts_type == "full":
+            parts_name_remap = {
+                "back": "back",
+                "beak": "beak",
+                "belly": "belly",
+                "breast": "breast",
+                "crown": "crown",
+                "forehead": "forehead",
+                "left eye": "eye",
+                "left leg": "leg",
+                "left wing": "wing",
+                "nape": "nape",
+                "right eye": "eye",
+                "right leg": "leg",
+                "right wing": "wing",
+                "tail": "tail",
+                "throat": "throat",
+            }
 
-        self._parts_name_index = {
-            0: "back",
-            1: "beak",
-            2: "belly",
-            3: "breast",
-            4: "crown",
-            5: "forehead",
-            6: "eye",
-            7: "leg",
-            8: "wing",
-            9: "nape",
-            10: "tail",
-            11: "throat",
-        }
+            self._parts_name_index = {
+                0: "back",
+                1: "beak",
+                2: "belly",
+                3: "breast",
+                4: "crown",
+                5: "forehead",
+                6: "eye",
+                7: "leg",
+                8: "wing",
+                9: "nape",
+                10: "tail",
+                11: "throat",
+            }
+        elif self._parts_type == "minimize_head":
+            parts_name_remap = {
+                "back": "back",
+                "beak": "head",
+                "belly": "belly",
+                "breast": "breast",
+                "crown": "head",
+                "forehead": "head",
+                "left eye": "head",
+                "left leg": "leg",
+                "left wing": "wing",
+                "nape": "head",
+                "right eye": "head",
+                "right leg": "leg",
+                "right wing": "wing",
+                "tail": "tail",
+                "throat": "head",
+            }
+
+            self._parts_name_index = {
+                0: "back",
+                1: "belly",
+                2: "breast",
+                3: "head",
+                4: "leg",
+                5: "wing",
+                6: "tail",
+            }
 
         '''parts_name_remap = {
             "back": "back",
@@ -225,8 +257,7 @@ class Cub(Dataset):
                     dx = max(x_coord_cell - x_coord_part, 0, x_coord_part - x_coord_cell - n_pix_per_cell_w)
                     dy = max(y_coord_cell - y_coord_part, 0, y_coord_part - y_coord_cell - n_pix_per_cell_h)
                     dist = math.sqrt(dx * dx + dy * dy) / n_pix_per_cell_w
-                    dist_value = max(0, 1 - dist)
-                    parts[new_part_id, cell_x, cell_y] = dist_value
+                    parts[new_part_id, cell_x, cell_y] = max(parts[new_part_id, cell_x, cell_y], dist)
         return parts
 
     @property

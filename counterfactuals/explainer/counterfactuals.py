@@ -230,47 +230,43 @@ def _find_single_best_edit(
     optim_class = np.log(optim_class)
 
     # determine semantic similarity loss via auxiliary model
-    if lambd > 0:
-        # normalize auxiliary feature representations
-        query_aux_features = F.normalize(
-            query_aux_features, dim=1, p=2
-        )  # n_pixels x dim_aux
-        distractor_aux_features = F.normalize(
-            distractor_aux_features, dim=1, p=2
-        )  # n_pixels x dim_aux
+    # normalize auxiliary feature representations
+    query_aux_features = F.normalize(
+        query_aux_features, dim=1, p=2
+    )  # n_pixels x dim_aux
+    distractor_aux_features = F.normalize(
+        distractor_aux_features, dim=1, p=2
+    )  # n_pixels x dim_aux
 
-        # compute dot product (cosine similarity)
-        logits = torch.matmul(query_aux_features, distractor_aux_features.t())
+    # compute dot product (cosine similarity)
+    logits = torch.matmul(query_aux_features, distractor_aux_features.t())
 
-        # use temperature
-        logits /= temperature
+    # use temperature
+    logits /= temperature
 
-        # non-parametric softmax
-        probs = F.softmax(logits, dim=1)
+    # non-parametric softmax
+    probs = F.softmax(logits, dim=1)
 
-        # numpy
-        probs = probs.cpu().numpy()
+    # numpy
+    probs = probs.cpu().numpy()
 
-        # select edits
-        optim_consistency = np.array([probs[v] for v in all_edits])
+    # select edits
+    optim_consistency = np.array([probs[v] for v in all_edits])
 
-        # log-space
-        optim_consistency = np.log(optim_consistency)
+    # log-space
+    optim_consistency = np.log(optim_consistency)
 
-        # compute product of semantic classes
-        # semantic_class_similarity = torch.matmul(query_parts_fl, distractor_parts_fl.t())
-        semantic_class_product = torch.mul(query_parts_fl.flatten()[:, None], distractor_parts_fl.flatten()[None, :])
-        semantic_class_diags = semantic_class_product.reshape(n_pixels, n_classes, -1, n_classes).permute(0, 2, 1, 3).reshape(-1, n_classes, n_classes)
-        semantic_class_similarity = torch.diagonal(semantic_class_diags, dim1=1, dim2=2).max(1).values.reshape(n_pixels, -1)
-        optim_semantic_class = torch.tensor(np.array([semantic_class_similarity[v] for v in all_edits])).clamp(max=1).numpy()
+    # compute product of semantic classes
+    # semantic_class_similarity = torch.matmul(query_parts_fl, distractor_parts_fl.t())
+    semantic_class_product = torch.mul(query_parts_fl.flatten()[:, None], distractor_parts_fl.flatten()[None, :])
+    semantic_class_diags = semantic_class_product.reshape(n_pixels, n_classes, -1, n_classes).permute(0, 2, 1, 3).reshape(-1, n_classes, n_classes)
+    semantic_class_similarity = torch.diagonal(semantic_class_diags, dim1=1, dim2=2).max(1).values.reshape(n_pixels, -1)
+    optim_semantic_class = torch.tensor(np.array([semantic_class_similarity[v] for v in all_edits])).clamp(max=1).numpy()
 
-        if mode == "multiplicative":
-            optim_total = optim_class * optim_semantic_class
-        elif mode == "additive":
-            optim_total = optim_class + lambd * optim_consistency + lambd2 * optim_semantic_class
-
-    else:
-        optim_total = optim_class
+    if mode == "multiplicative":
+        optim_total = optim_class * optim_semantic_class
+    elif mode == "additive":
+        optim_total = optim_class + lambd * optim_consistency + lambd2 * optim_semantic_class
 
     # find best edit
     best_edit = np.argmax(optim_total)

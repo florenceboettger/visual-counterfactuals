@@ -37,7 +37,7 @@ class Cub(Dataset):
         return_image_only=False,
         blank=False,
         n_row=7,
-        mask_type="binary",
+        max_dist=0,
         parts_type="full"
     ):
 
@@ -49,7 +49,7 @@ class Cub(Dataset):
         self._return_image_only = return_image_only
         self._blank = blank
         self._n_row = n_row
-        self._mask_type = mask_type
+        self._max_dist = max_dist
         self._parts_type = parts_type
 
         if not self._check_dataset_folder():
@@ -236,15 +236,15 @@ class Cub(Dataset):
         part_ids = sample["part_ids"]
         n_pix_per_cell_h = sample["image"].shape[1] // self._n_row
         n_pix_per_cell_w = sample["image"].shape[2] // self._n_row
-        parts = np.zeros((len(self.parts_name_index), self._n_row, self._n_row), dtype=np.uint8)
-        if self._mask_type == "binary":
+        parts = np.zeros((len(self.parts_name_index), self._n_row, self._n_row))
+        if self._max_dist == 0:
             for part_loc, part_id in zip(part_locs, part_ids):
                 x_coord = int(part_loc[0] // n_pix_per_cell_w)
                 y_coord = int(part_loc[1] // n_pix_per_cell_h)
                 new_part_id = self._parts_index_remap[part_id]
                 if new_part_id != -1:
                     parts[new_part_id, y_coord, x_coord] = 1
-        elif self._mask_type == "distance":
+        else:
             for part_loc, part_id in zip(part_locs, part_ids):
                 new_part_id = self._parts_index_remap[part_id]
                 if new_part_id == -1:
@@ -257,7 +257,7 @@ class Cub(Dataset):
                     dx = max(x_coord_cell - x_coord_part, 0, x_coord_part - x_coord_cell - n_pix_per_cell_w)
                     dy = max(y_coord_cell - y_coord_part, 0, y_coord_part - y_coord_cell - n_pix_per_cell_h)
                     dist = math.sqrt(dx * dx + dy * dy) / n_pix_per_cell_w
-                    parts[new_part_id, cell_x, cell_y] = max(parts[new_part_id, cell_x, cell_y], dist)
+                    parts[new_part_id, cell_y, cell_x] = max(parts[new_part_id, cell_y, cell_x], 1 - dist / self._max_dist)
         return parts
 
     @property

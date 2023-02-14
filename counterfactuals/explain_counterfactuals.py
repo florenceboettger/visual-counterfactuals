@@ -69,7 +69,7 @@ def main():
 
 def optimize_counterfactuals(trial):
     return explain_counterfactuals(
-        config_path="visual-counterfactuals/counterfactuals/configs/counterfactuals/counterfactuals_ours_cub_vgg16.yaml",
+        config_path="visual-counterfactuals/counterfactuals/configs/counterfactuals/counterfactuals_ours_cub_res50.yaml",
         index=f"optimize_counterfactuals_resnet_{trial.number}",
         mode="additive",
         lambd=0.0,

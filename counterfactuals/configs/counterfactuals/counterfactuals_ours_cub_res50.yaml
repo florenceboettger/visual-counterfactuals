@@ -1,5 +1,5 @@
-batch_size: 64
-num_workers: 4
+batch_size: 32
+num_workers: 2
 
 model: ResNet50
 model_kwargs:

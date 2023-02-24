@@ -44,7 +44,7 @@ def main():
 
     if args.train:
         study = optuna.create_study(
-            study_name="optimize_counterfactuals_resnet",
+            study_name="optimize_counterfactuals_initial",
             directions=["maximize", "minimize"],
             storage="sqlite:///optimize_counterfactuals_full.db",
             load_if_exists=True,
@@ -69,13 +69,13 @@ def main():
 
 def optimize_counterfactuals(trial):
     return explain_counterfactuals(
-        config_path="visual-counterfactuals/counterfactuals/configs/counterfactuals/counterfactuals_ours_cub_res50.yaml",
-        index=f"optimize_counterfactuals_resnet_{trial.number}",
+        config_path="visual-counterfactuals/counterfactuals/configs/counterfactuals/counterfactuals_ours_cub_vgg16.yaml",
+        index=f"optimize_counterfactuals_initial_{trial.number}",
         mode="additive",
-        lambd=0.0,
+        lambd=trial.suggest_float("lambd2", 0.0, 2.0),
         lambd2=trial.suggest_float("lambd2", 0.0, 10.0),
         max_dist=trial.suggest_float("max_dist", 0.0, 3.0),
-        parts_type="full",
+        parts_type=trial.suggest_categorical("parts_type", ["full", "minimize_head"]),
     )
 
 

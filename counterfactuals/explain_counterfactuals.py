@@ -72,7 +72,7 @@ def optimize_counterfactuals(trial):
         config_path="visual-counterfactuals/counterfactuals/configs/counterfactuals/counterfactuals_ours_cub_vgg16.yaml",
         index=f"optimize_counterfactuals_initial_{trial.number}",
         mode="additive",
-        lambd=trial.suggest_float("lambd2", 0.0, 2.0),
+        lambd=trial.suggest_float("lambd", 0.0, 2.0),
         lambd2=trial.suggest_float("lambd2", 0.0, 10.0),
         max_dist=trial.suggest_float("max_dist", 0.0, 3.0),
         parts_type=trial.suggest_categorical("parts_type", ["full", "minimize_head"]),

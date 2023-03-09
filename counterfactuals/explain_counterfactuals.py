@@ -44,10 +44,12 @@ def main():
     args = parser.parse_args()
 
     if args.train:
+        search_space = {"lambd": [0.0, 0.2, 0.4, 0.5, 0.6, 0.8, 1.0], "temperature": [0.07, 0.1, 0.2]}
         study = optuna.create_study(
-            study_name="optimize_counterfactuals_vandenhende",
+            storage="sqlite://///store-01.hpi.uni-potsdam.de/fg/doellner/florence.boettger/counterfactuals/optimize_counterfactuals_full.db",
+            study_name="optimize_counterfactuals_vandenhende3",
             directions=["maximize", "minimize"],
-            storage="sqlite:///optimize_counterfactuals_full.db",
+            sampler=optuna.samplers.GridSampler(search_space),
             load_if_exists=True,
         )
         study.optimize(
@@ -83,7 +85,7 @@ def optimize_counterfactuals(trial):
 
 
 def explain_counterfactuals(config_path, index, mode, lambd, temperature, lambd2, max_dist, parts_type):
-    print(f"Beginning counterfactual search {index}, mode={mode}, lambd={lambd}, lambd2={lambd2}, max_dist={max_dist}, parts_type={parts_type}")
+    print(f"Beginning counterfactual search {index}, mode={mode}, lambd={lambd}, temperature={temperature}, lambd2={lambd2}, max_dist={max_dist}, parts_type={parts_type}")
     # parse args
     with open(config_path, "r") as stream:
         config = yaml.safe_load(stream)
@@ -259,12 +261,13 @@ def explain_counterfactuals(config_path, index, mode, lambd, temperature, lambd2
 
     if index is not None:
         with open(result_path, "w") as f:
-            writer = csv.DictWriter(f, fieldnames=["id", "mode", "lambd", "lambd2", "max_dist", "parts_type", "avg_edits", "eval_single", "eval_all"])
+            writer = csv.DictWriter(f, fieldnames=["id", "mode", "lambd", "lambd2", "temperature", "max_dist", "parts_type", "avg_edits", "eval_single", "eval_all"])
             writer.writeheader()
             writer.writerow({
                 "id": index,
                 "mode": mode,
                 "lambd": lambd,
+                "temperature": temperature,
                 "lambd2": lambd2,
                 "max_dist": max_dist,
                 "parts_type": parts_type,

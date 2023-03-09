@@ -46,7 +46,7 @@ def main():
     if args.train:
         search_space = {"lambd": [0.0, 0.2, 0.4, 0.5, 0.6, 0.8, 1.0], "temperature": [0.07, 0.1, 0.2]}
         study = optuna.create_study(
-            storage="sqlite://///store-01.hpi.uni-potsdam.de/fg/doellner/florence.boettger/counterfactuals/optimize_counterfactuals_full.db",
+            storage="sqlite:///optimize_counterfactuals_full.db",
             study_name="optimize_counterfactuals_vandenhende3",
             directions=["maximize", "minimize"],
             sampler=optuna.samplers.GridSampler(search_space),

@@ -32,6 +32,7 @@ parser.add_argument("--config_path", type=str, required=True)
 parser.add_argument("--index", type=str, required=True)
 parser.add_argument("--mode", choices=["multiplicative", "additive"])
 parser.add_argument("--lambd", type=float)
+parser.add_argument("--temperature", type=float)
 parser.add_argument("--lambd2", type=float)
 parser.add_argument("--max_dist", type=float)
 parser.add_argument("--parts_type", choices=["full", "minimize_head"])
@@ -44,7 +45,7 @@ def main():
 
     if args.train:
         study = optuna.create_study(
-            study_name="optimize_counterfactuals_initial2",
+            study_name="optimize_counterfactuals_vandenhende",
             directions=["maximize", "minimize"],
             storage="sqlite:///optimize_counterfactuals_full.db",
             load_if_exists=True,
@@ -61,6 +62,7 @@ def main():
             index=args.index,
             mode=args.mode or "additive",
             lambd=args.lambd or 0,
+            temperature=args.temperature or 0,
             lambd2=args.lambd2 or 0,
             max_dist=args.max_dist or 0,
             parts_type=args.parts_type or "full",
@@ -70,16 +72,17 @@ def main():
 def optimize_counterfactuals(trial):
     return explain_counterfactuals(
         config_path="visual-counterfactuals/counterfactuals/configs/counterfactuals/counterfactuals_ours_cub_vgg16.yaml",
-        index=f"optimize_counterfactuals_initial2_{trial.number}",
+        index=f"optimize_counterfactuals_vandenhende_{trial.number}",
         mode="additive",
-        lambd=trial.suggest_float("lambd", 0.0, 2.0),
-        lambd2=trial.suggest_float("lambd2", 0.0, 10.0),
-        max_dist=trial.suggest_float("max_dist", 0.0, 3.0),
-        parts_type=trial.suggest_categorical("parts_type", ["full", "minimize_head"]),
+        lambd=trial.suggest_float("lambd", 0.0, 1.0),
+        temperature=trial.suggest_float("temperature", 0.07, 0.2),
+        lambd2=0,
+        max_dist=0,
+        parts_type="full",
     )
 
 
-def explain_counterfactuals(config_path, index, mode, lambd, lambd2, max_dist, parts_type):
+def explain_counterfactuals(config_path, index, mode, lambd, temperature, lambd2, max_dist, parts_type):
     print(f"Beginning counterfactual search {index}, mode={mode}, lambd={lambd}, lambd2={lambd2}, max_dist={max_dist}, parts_type={parts_type}")
     # parse args
     with open(config_path, "r") as stream:
@@ -215,7 +218,7 @@ def explain_counterfactuals(config_path, index, mode, lambd, lambd2, max_dist, p
             distractor_aux_features=distractor_aux_features,
             lambd=lambd,
             lambd2=lambd2,
-            temperature=config["counterfactuals_kwargs"]["temperature"],
+            temperature=temperature,
             topk=config["counterfactuals_kwargs"]["topk"]
             if "topk" in config["counterfactuals_kwargs"].keys()
             else None,

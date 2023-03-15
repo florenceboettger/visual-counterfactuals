@@ -139,7 +139,7 @@ def visualize_edits(
     ax.set_ylim(0, 1)
     plt.imshow(query_img, extent=(0, 1, 0, 1))
 
-    for i in range(max(len(edits), n_edits)):
+    for i in range(min(len(edits), n_edits)):
         edit = edits[i]
         cell_index_query = edit[0]
         row_index_query = cell_index_query // n_pix

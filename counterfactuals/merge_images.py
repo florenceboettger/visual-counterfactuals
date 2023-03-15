@@ -20,8 +20,9 @@ def main():
     args = parser.parse_args()
 
     dirpath = os.path.join(Path.output_root_dir(), args.input_path)
-    seed = args.seed or datetime.now().timestamp()
     samples = args.samples or 10
+    if args.seed is not None:
+        np.random.seed(args.seed)
 
     dataset = get_test_dataset(get_vis_transform(), return_image_only=True)
 
@@ -32,7 +33,6 @@ def main():
     dirpath_output = os.path.join(Path.output_root_dir(), "examples", args.input_path)
     os.makedirs(dirpath_output, exist_ok=True)
 
-    np.random.seed(seed)
     for idx in np.random.choice(list(counterfactuals.keys()), samples):
         cf = counterfactuals[idx]
 

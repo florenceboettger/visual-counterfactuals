@@ -42,7 +42,7 @@ def main():
             distractor_index=cf["distractor_index"],
             dataset=dataset,
             n_pix=7,
-            fname=f"output/examples/{args.input_path}/example_{idx}.png",
+            fname=f"output/merged/{args.input_path}/example_{idx}.png",
         )
 
 

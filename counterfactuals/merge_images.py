@@ -13,6 +13,7 @@ parser = argparse.ArgumentParser(description="Visualize counterfactual explanati
 parser.add_argument("--input_path", type=str, required=True)
 parser.add_argument("--seed", type=int, required=False)
 parser.add_argument("--samples", type=int, required=False)
+parser.add_argument("--edits", type=int, required=False)
 parser.add_argument("--radius", type=float, required=False)
 
 
@@ -23,6 +24,7 @@ def main():
     dirpath = os.path.join(Path.output_root_dir(), args.input_path)
     samples = args.samples or 10
     radius = args.radius
+    n_edits = args.edits
     if args.seed is not None:
         np.random.seed(args.seed)
 
@@ -45,6 +47,7 @@ def main():
             dataset=dataset,
             n_pix=7,
             radius=radius,
+            n_edits=n_edits,
             fname=f"output/examples/{args.input_path}/merge_{idx}.png",
         )
 

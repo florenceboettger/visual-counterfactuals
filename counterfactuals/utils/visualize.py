@@ -146,8 +146,8 @@ def visualize_edits(
     col_index_distractor = cell_index_distractor % n_pix
 
     crop = [
-        max(0, round((n_pix - row_index_distractor - 0.5 - radius) * height_cell)),
-        round((n_pix - row_index_distractor - 0.5 + radius) * height_cell),
+        max(0, round((row_index_distractor + 0.5 - radius) * height_cell)),
+        round((row_index_distractor + 0.5 + radius) * height_cell),
         max(0, round((col_index_distractor + 0.5 - radius) * width_cell)),
         round((col_index_distractor + 0.5 + radius) * width_cell)
     ]

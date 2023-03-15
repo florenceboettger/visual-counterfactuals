@@ -161,7 +161,7 @@ def visualize_edits(
     ax.set_axis_off()
     ax.set_xlim(0, 1)
     ax.set_ylim(0, 1)
-    plt.imshow(query_img)
+    plt.imshow(query_img, extent=(0, 1, 0, 1))
     plt.imshow(distractor_img_masked, extent=extent)
     
     plt.tight_layout()

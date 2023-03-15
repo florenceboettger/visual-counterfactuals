@@ -16,10 +16,15 @@ from utils.visualize import visualize_counterfactuals
 
 parser = argparse.ArgumentParser(description="Visualize counterfactual explanations")
 parser.add_argument("--input_path", type=str, required=True)
+parser.add_argument("--seed", type=int, required=False)
+parser.add_argument("--samples", type=int, required=False)
 
 
 def main():
     args = parser.parse_args()
+    samples = args.samples or 10
+    if args.seed is not None:
+        np.random.seed(args.seed)
 
     dirpath = os.path.join(Path.output_root_dir(), args.input_path)
 
@@ -32,7 +37,7 @@ def main():
     dirpath_output = os.path.join(Path.output_root_dir(), "examples", args.input_path)
     os.makedirs(dirpath_output, exist_ok=True)
 
-    for idx in np.random.choice(list(counterfactuals.keys()), 10):
+    for idx in np.random.choice(list(counterfactuals.keys()), samples):
         cf = counterfactuals[idx]
 
         visualize_counterfactuals(

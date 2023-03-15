@@ -109,6 +109,7 @@ def visualize_edits(
     height_cell = height // n_pix
 
     plt.imshow(query_img)
+    plt.tick_params(axis="both", which="both", bottom=False, top=False, left=False, right=False,labelbottom=False, labelleft=False)
     
     plt.tight_layout()
     if fname is None:

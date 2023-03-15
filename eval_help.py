@@ -4,12 +4,15 @@ from scipy import stats
 from functools import reduce
 import numpy as np
 
-def plot_study(study, name, is_resnet=False, print_others=True, print_pareto=True, map=lambda t: 1.0):
+def plot_study(study, name, is_resnet=False, print_others=True, print_pareto=True, map=lambda t: 1.0, other_study=None):
     trials = [t for t in study.trials if t.values is not None and (t.number > 5 or not is_resnet)]
     if print_others:
         plt.scatter([t.values[0] for t in trials], [t.values[1] for t in trials], c=[0.8 * map(t) for t in trials], cmap='Blues', linewidths=1.0, edgecolors='#000000', norm=Normalize(0.0, 1.0))
     if print_pareto:
         plt.scatter([t.values[0] for t in study.best_trials], [t.values[1] for t in study.best_trials], c=[0.8 * map(t) for t in study.best_trials], cmap='Reds', linewidths=1.0, edgecolors='#000000', norm=Normalize(0.0, 1.0))
+    if other_study is not None:
+        other_trials = [t for t in other_study.trials if t.values is not None]
+        plt.scatter([t.values[0] for t in other_trials], [t.values[1] for t in other_trials], c=[0.8 * map(t) for t in other_trials], cmap='Greens', linewidths=1.0, edgecolors='#000000', norm=Normalize(0.0, 1.0))
     plt.xlabel('KP')
     plt.ylabel('Edits')
     plt.savefig(f"plots/{name}.png", dpi=500)

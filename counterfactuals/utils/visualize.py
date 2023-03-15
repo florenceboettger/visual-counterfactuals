@@ -92,3 +92,26 @@ def visualize_counterfactuals(
     else:
         plt.savefig(fname, bbox_inches="tight", dpi=300)
     plt.close()
+
+def visualize_edits(
+    edits,
+    query_index,
+    distractor_index,
+    dataset,
+    n_pix,
+    fname=None,
+):
+    query_img = dataset.__getitem__(query_index)
+    height, width = query_img.shape[0], query_img.shape[1]
+
+    # geometric properties of cells
+    width_cell = width // n_pix
+    height_cell = height // n_pix
+
+    plt.imshow(query_img)
+    
+    if fname is None:
+        plt.show()
+    else:
+        plt.savefig(fname, bbox_inches="tight", dpi=300)
+    plt.close()

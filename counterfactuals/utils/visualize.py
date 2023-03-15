@@ -6,6 +6,7 @@
 
 import matplotlib.patches as patches
 import matplotlib.pyplot as plt
+import numpy as np
 
 
 def visualize_counterfactuals(
@@ -93,12 +94,34 @@ def visualize_counterfactuals(
         plt.savefig(fname, bbox_inches="tight", dpi=300)
     plt.close()
 
+def smoothstep(e0, e1, x):
+    t = max(min((x - e0) / (e1 - e0), 1.0), 0.0)
+    return t * t * (3.0 - 2.0 * t)
+
+def circular_crop(image):
+    width = image.shape[0]
+    height = image.shape[1]
+    tolerance = 0.1
+    min_radius = 0.5 - tolerance
+    max_radius = 0.5
+    mask = np.zeros((width, height))
+    output = np.zeros((width, height, 4))
+    for i in range(width):
+        for j in range(height):
+            v = [i / width, j / height]
+            d = np.linalg.norm(v - np.array([0.5, 0.5]))
+            s = smoothstep(min_radius, max_radius, d)
+            mask[i, j] = 1.0 - s
+            output[i, j] = np.append(image[i, j] / 255, [1.0 - s])
+    return output
+
 def visualize_edits(
     edits,
     query_index,
     distractor_index,
     dataset,
     n_pix,
+    radius=0.5*np.sqrt(2),
     fname=None,
 ):
     query_img = dataset.__getitem__(query_index)
@@ -108,8 +131,38 @@ def visualize_edits(
     width_cell = width // n_pix
     height_cell = height // n_pix
 
+    edit = edits[0]
+    cell_index_query = edit[0]
+    row_index_query = cell_index_query // n_pix
+    col_index_query = cell_index_query % n_pix
+
+    cell_index_distractor = edit[1]
+
+    index_distractor = distractor_index[cell_index_distractor // (n_pix**2)]
+    distractor_img = dataset.__getitem__(index_distractor)
+
+    cell_index_distractor = cell_index_distractor % (n_pix**2)
+    row_index_distractor = cell_index_distractor // n_pix
+    col_index_distractor = cell_index_distractor % n_pix
+
+    crop = [
+        max(0, round((col_index_distractor + 0.5 - radius) * width_cell)),
+        round((col_index_distractor + 0.5 + radius) * width_cell),
+        max(0, round((row_index_distractor + 0.5 - radius) * height_cell)),
+        round((row_index_distractor + 0.5 + radius) * height_cell)
+    ]
+    distractor_img_cropped = distractor_img[crop[0]:crop[1], crop[2]:crop[3]]
+    distractor_img_masked = circular_crop(distractor_img_cropped)
+
+    extent = ((col_index_query + 0.5 - radius) / n_pix, (col_index_query + 0.5 + radius) / n_pix, (row_index_query + 0.5 - radius) / n_pix, (row_index_query + 0.5 + radius) / n_pix)
+
+    plt.figure(figsize=(10, 10))
+    ax = plt.axes([0, 0, 1, 1], frameon=False)
+    ax.set_axis_off()
+    ax.set_xlim(0, 1)
+    ax.set_ylim(0, 1)
     plt.imshow(query_img)
-    plt.tick_params(axis="both", which="both", bottom=False, top=False, left=False, right=False,labelbottom=False, labelleft=False)
+    plt.imshow(distractor_img_masked, extent=extent)
     
     plt.tight_layout()
     if fname is None:

@@ -44,7 +44,7 @@ def main():
             distractor_index=cf["distractor_index"],
             dataset=dataset,
             n_pix=7,
-            radius=radius
+            radius=radius,
             fname=f"output/examples/{args.input_path}/merge_{idx}.png",
         )
 

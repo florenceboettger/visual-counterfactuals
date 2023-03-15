@@ -101,7 +101,7 @@ def smoothstep(e0, e1, x):
 def circular_crop(image):
     width = image.shape[0]
     height = image.shape[1]
-    tolerance = 0.1
+    tolerance = 0.25
     min_radius = 0.5 - tolerance
     max_radius = 0.5
     mask = np.zeros((width, height))

@@ -110,6 +110,7 @@ def visualize_edits(
 
     plt.imshow(query_img)
     
+    plt.tight_layout()
     if fname is None:
         plt.show()
     else:

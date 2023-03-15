@@ -30,7 +30,7 @@ def main():
         os.path.join(dirpath, "counterfactuals.npy"), allow_pickle=True
     ).item()
 
-    dirpath_output = os.path.join(Path.output_root_dir(), "merged", args.input_path)
+    dirpath_output = os.path.join(Path.output_root_dir(), "examples", args.input_path)
     os.makedirs(dirpath_output, exist_ok=True)
 
     for idx in np.random.choice(list(counterfactuals.keys()), samples):
@@ -42,7 +42,7 @@ def main():
             distractor_index=cf["distractor_index"],
             dataset=dataset,
             n_pix=7,
-            fname=f"output/merged/{args.input_path}/example_{idx}.png",
+            fname=f"output/examples/{args.input_path}/merge_{idx}.png",
         )
 
 

@@ -146,15 +146,15 @@ def visualize_edits(
     col_index_distractor = cell_index_distractor % n_pix
 
     crop = [
+        max(0, round((n_pix - row_index_distractor - 0.5 - radius) * height_cell)),
+        round((n_pix - row_index_distractor - 0.5 + radius) * height_cell),
         max(0, round((col_index_distractor + 0.5 - radius) * width_cell)),
-        round((col_index_distractor + 0.5 + radius) * width_cell),
-        max(0, round((row_index_distractor + 0.5 - radius) * height_cell)),
-        round((row_index_distractor + 0.5 + radius) * height_cell)
+        round((col_index_distractor + 0.5 + radius) * width_cell)
     ]
     distractor_img_cropped = distractor_img[crop[0]:crop[1], crop[2]:crop[3]]
     distractor_img_masked = circular_crop(distractor_img_cropped)
 
-    extent = ((col_index_query + 0.5 - radius) / n_pix, (col_index_query + 0.5 + radius) / n_pix, (row_index_query + 0.5 - radius) / n_pix, (row_index_query + 0.5 + radius) / n_pix)
+    extent = ((col_index_query + 0.5 - radius) / n_pix, (col_index_query + 0.5 + radius) / n_pix, (n_pix - row_index_query - 0.5 - radius) / n_pix, (n_pix - row_index_query - 0.5 + radius) / n_pix)
 
     plt.figure(figsize=(10, 10))
     ax = plt.axes([0, 0, 1, 1], frameon=False)

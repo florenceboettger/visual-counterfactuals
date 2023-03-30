@@ -232,7 +232,7 @@ def visualize_edits(
     n_edits=1,
     fname=None,
 ):
-    for i in range(1, n_edits + 1):
+    for i in range(0, n_edits):
         visualize_merge(
             edits=edits,
             query_index=query_index,
@@ -240,8 +240,8 @@ def visualize_edits(
             dataset=dataset,
             n_pix=n_pix,
             radius=radius,
-            n_edits=i,
-            fname=f"{fname}/merge_{n_edits}.png"
+            n_edits=i + 1,
+            fname=f"{fname}/merge_{i}.png"
         )
     
     query_img = dataset.__getitem__(query_index)

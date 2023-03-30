@@ -14,6 +14,7 @@ parser.add_argument("--input_path", type=str, required=True)
 parser.add_argument("--seed", type=int, required=False)
 parser.add_argument("--samples", type=int, required=False)
 parser.add_argument("--edits", type=int, required=False)
+parser.add_argument("--index", type=int, required=False)
 parser.add_argument("--radius", type=float, required=False)
 
 
@@ -22,9 +23,11 @@ def main():
     args = parser.parse_args()
 
     dirpath = os.path.join(Path.output_root_dir(), args.input_path)
-    samples = args.samples or 10
+    n_samples = args.samples or 10
     radius = args.radius
     n_edits = args.edits
+    index = args.index
+
     if args.seed is not None:
         np.random.seed(args.seed)
 
@@ -34,7 +37,13 @@ def main():
         os.path.join(dirpath, "counterfactuals.npy"), allow_pickle=True
     ).item()
 
-    for idx in np.random.choice(list(counterfactuals.keys()), samples):
+    samples = []
+    if index is not None:
+        samples = [index]
+    else:
+        samples = np.random.choice(list(counterfactuals.keys()), n_samples)
+
+    for idx in samples:
         dirpath_output = os.path.join(Path.output_root_dir(), "examples", args.input_path, f"merge_{idx}")
         os.makedirs(dirpath_output, exist_ok=True)
         cf = counterfactuals[idx]

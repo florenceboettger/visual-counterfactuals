@@ -115,7 +115,7 @@ def circular_crop(image):
             output[i, j] = np.append(image[i, j] / 255, [1.0 - s])
     return output
 
-def visualize_edit(
+def visualize_merge(
     edits,
     query_index,
     distractor_index,
@@ -171,7 +171,7 @@ def visualize_edit(
     if fname is None:
         plt.show()
     else:
-        plt.savefig(f"{fname}/merge_{n_edits}.png", bbox_inches="tight", dpi=300)
+        plt.savefig(fname, bbox_inches="tight", dpi=300)
     plt.close()
 
 def save_image(
@@ -188,9 +188,39 @@ def save_image(
     if fname is None:
         plt.show()
     else:
-        plt.savefig(f"{fname}", bbox_inches="tight", dpi=300)
+        plt.savefig(fname, bbox_inches="tight", dpi=300)
     plt.close()
 
+
+def visualize_edit(
+    img,
+    x_coord,
+    y_coord,
+    n_pix,
+    fname
+):
+    plt.figure(figsize=(10, 10))
+    ax = plt.axes([0, 0, 1, 1], frameon=False)
+    ax.set_axis_off()
+    ax.set_xlim(0, 1)
+    ax.set_ylim(0, 1)
+    plt.imshow(img, extent=(0, 1, 0, 1))
+
+    rect = patches.Rectangle(
+            (x_coord / n_pix, y_coord / n_pix),
+            1 / n_pix,
+            1 / n_pix,
+            linewidth=1,
+            edgecolor="b",
+            facecolor="none",
+        )
+    ax.add_patch(rect)
+    plt.tight_layout()
+    if fname is None:
+        plt.show()
+    else:
+        plt.savefig(fname, bbox_inches="tight", dpi=300)
+    plt.close()
 
 def visualize_edits(
     edits,
@@ -203,7 +233,7 @@ def visualize_edits(
     fname=None,
 ):
     for i in range(1, n_edits + 1):
-        visualize_edit(
+        visualize_merge(
             edits=edits,
             query_index=query_index,
             distractor_index=distractor_index,
@@ -211,7 +241,7 @@ def visualize_edits(
             n_pix=n_pix,
             radius=radius,
             n_edits=i,
-            fname=fname
+            fname=f"{fname}/merge_{n_edits}.png"
         )
     
     query_img = dataset.__getitem__(query_index)
@@ -224,3 +254,15 @@ def visualize_edits(
         distractor_img = dataset.__getitem__(index_distractor)
 
         save_image(distractor_img, f"{fname}/distractor_{i}.png")
+        
+        cell_index_query = edit[0]
+        row_index_query = cell_index_query // n_pix
+        col_index_query = cell_index_query % n_pix
+
+        visualize_edit(query_img, row_index_query, col_index_query, n_pix, f"{fname}/query_edit_{i}.png")     
+
+        cell_index_distractor = cell_index_distractor % (n_pix**2)
+        row_index_distractor = cell_index_distractor // n_pix
+        col_index_distractor = cell_index_distractor % n_pix        
+
+        visualize_edit(distractor_img, row_index_distractor, col_index_distractor, n_pix, f"{fname}/distractor_edit_{i}.png")     

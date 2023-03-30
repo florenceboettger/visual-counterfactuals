@@ -207,7 +207,7 @@ def visualize_edit(
     plt.imshow(img, extent=(0, 1, 0, 1))
 
     rect = patches.Rectangle(
-            (x_coord / n_pix, 1 - (y_coord - 1) / n_pix),
+            (x_coord / n_pix, 1 - (y_coord + 1) / n_pix),
             1 / n_pix,
             1 / n_pix,
             linewidth=3,

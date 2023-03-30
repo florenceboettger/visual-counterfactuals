@@ -210,8 +210,8 @@ def visualize_edit(
             (x_coord / n_pix, y_coord / n_pix),
             1 / n_pix,
             1 / n_pix,
-            linewidth=1,
-            edgecolor="b",
+            linewidth=3,
+            edgecolor="k",
             facecolor="none",
         )
     ax.add_patch(rect)
@@ -259,10 +259,10 @@ def visualize_edits(
         row_index_query = cell_index_query // n_pix
         col_index_query = cell_index_query % n_pix
 
-        visualize_edit(query_img, row_index_query, col_index_query, n_pix, f"{fname}/query_edit_{i}.png")     
+        visualize_edit(query_img, col_index_query, row_index_query, n_pix, f"{fname}/query_edit_{i}.png")     
 
         cell_index_distractor = cell_index_distractor % (n_pix**2)
         row_index_distractor = cell_index_distractor // n_pix
         col_index_distractor = cell_index_distractor % n_pix        
 
-        visualize_edit(distractor_img, row_index_distractor, col_index_distractor, n_pix, f"{fname}/distractor_edit_{i}.png")     
+        visualize_edit(distractor_img, col_index_distractor, row_index_distractor, n_pix, f"{fname}/distractor_edit_{i}.png")     

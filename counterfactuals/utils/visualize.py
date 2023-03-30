@@ -115,7 +115,7 @@ def circular_crop(image):
             output[i, j] = np.append(image[i, j] / 255, [1.0 - s])
     return output
 
-def visualize_edits(
+def visualize_edit(
     edits,
     query_index,
     distractor_index,
@@ -171,5 +171,56 @@ def visualize_edits(
     if fname is None:
         plt.show()
     else:
-        plt.savefig(fname, bbox_inches="tight", dpi=300)
+        plt.savefig(f"{fname}/merge_{n_edits}.png", bbox_inches="tight", dpi=300)
     plt.close()
+
+def save_image(
+    img,
+    fname=None,
+):
+    plt.figure(figsize=(10, 10))
+    ax = plt.axes([0, 0, 1, 1], frameon=False)
+    ax.set_axis_off()
+    ax.set_xlim(0, 1)
+    ax.set_ylim(0, 1)
+    plt.imshow(img, extent=(0, 1, 0, 1))
+    plt.tight_layout()
+    if fname is None:
+        plt.show()
+    else:
+        plt.savefig(f"{fname}", bbox_inches="tight", dpi=300)
+    plt.close()
+
+
+def visualize_edits(
+    edits,
+    query_index,
+    distractor_index,
+    dataset,
+    n_pix,
+    radius=0.5*np.sqrt(2),
+    n_edits=1,
+    fname=None,
+):
+    for i in range(1, n_edits + 1):
+        visualize_edit(
+            edits=edits,
+            query_index=query_index,
+            distractor_index=distractor_index,
+            dataset=dataset,
+            n_pix=n_pix,
+            radius=radius,
+            n_edits=i,
+            fname=fname
+        )
+    
+    query_img = dataset.__getitem__(query_index)
+    save_image(query_img, f"{fname}/query.png")
+    for i in range(min(len(edits), n_edits)):
+        edit = edits[i]
+        cell_index_distractor = edit[1]
+
+        index_distractor = distractor_index[cell_index_distractor // (n_pix**2)]
+        distractor_img = dataset.__getitem__(index_distractor)
+
+        save_image(distractor_img, f"{fname}/distractor_{i}.png")

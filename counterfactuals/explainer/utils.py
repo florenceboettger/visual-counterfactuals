@@ -39,7 +39,7 @@ def get_query_distractor_pairs(
             continue
         distractor_class = np.argmax(row)
 
-        # gater all images belonging to distractor class
+        # gather all images belonging to distractor class
         distractor_index = dataset.get_target(distractor_class)
 
         # randomly select `max_num_distractors`

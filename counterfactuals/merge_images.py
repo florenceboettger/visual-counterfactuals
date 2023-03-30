@@ -34,10 +34,9 @@ def main():
         os.path.join(dirpath, "counterfactuals.npy"), allow_pickle=True
     ).item()
 
-    dirpath_output = os.path.join(Path.output_root_dir(), "examples", args.input_path)
-    os.makedirs(dirpath_output, exist_ok=True)
-
     for idx in np.random.choice(list(counterfactuals.keys()), samples):
+        dirpath_output = os.path.join(Path.output_root_dir(), "examples", args.input_path, f"merge_{idx}")
+        os.makedirs(dirpath_output, exist_ok=True)
         cf = counterfactuals[idx]
 
         visualize_edits(
@@ -48,7 +47,7 @@ def main():
             n_pix=7,
             radius=radius,
             n_edits=n_edits,
-            fname=f"output/examples/{args.input_path}/merge_{idx}.png",
+            fname=f"output/examples/{args.input_path}/merge_{idx}",
         )
 
 

@@ -210,7 +210,7 @@ def visualize_edit(
             (x_coord / n_pix, 1 - (y_coord + 1) / n_pix),
             1 / n_pix,
             1 / n_pix,
-            linewidth=3,
+            linewidth=5,
             edgecolor="k",
             facecolor="none",
         )

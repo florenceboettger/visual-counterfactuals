@@ -171,8 +171,6 @@ def visualize_merge(
     if fname is None:
         plt.show()
     else:
-        print(fname)
-        print(n_edits)
         plt.savefig(fname, bbox_inches="tight", dpi=300)
     plt.close()
 
@@ -235,7 +233,6 @@ def visualize_edits(
     fname=None,
 ):
     for i in range(0, n_edits):
-        print(i)
         visualize_merge(
             edits=edits,
             query_index=query_index,

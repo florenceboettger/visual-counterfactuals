@@ -7,6 +7,7 @@
 import argparse
 import os
 import csv
+import time
 
 import model.auxiliary_model as auxiliary_model
 import numpy as np
@@ -44,12 +45,10 @@ def main():
     args = parser.parse_args()
 
     if args.train:
-        search_space = {"lambd": [0.0, 0.2, 0.4, 0.5, 0.6, 0.8, 1.0], "temperature": [0.07, 0.1, 0.2]}
         study = optuna.create_study(
             storage="sqlite:///optimize_counterfactuals_full.db",
-            study_name="optimize_counterfactuals_vandenhende3",
+            study_name="optimize_counterfactuals_performance_vgg",
             directions=["maximize", "minimize"],
-            sampler=optuna.samplers.GridSampler(search_space),
             load_if_exists=True,
         )
         study.optimize(
@@ -74,18 +73,19 @@ def main():
 def optimize_counterfactuals(trial):
     return explain_counterfactuals(
         config_path="visual-counterfactuals/counterfactuals/configs/counterfactuals/counterfactuals_ours_cub_vgg16.yaml",
-        index=f"optimize_counterfactuals_vandenhende_{trial.number}",
+        index=f"optimize_counterfactuals_performance_vgg_{trial.number}",
         mode="additive",
-        lambd=trial.suggest_float("lambd", 0.0, 1.0),
-        temperature=trial.suggest_float("temperature", 0.07, 0.2),
-        lambd2=0,
-        max_dist=0,
+        lambd=trial.suggest_float("lambd", 0.0, 2.0),
+        temperature=0,
+        lambd2=trial.suggest_float("lambd", 0.0, 10.0),
+        max_dist=trial.suggest_float("lambd", 0.0, 3.0),
         parts_type="full",
     )
 
 
 def explain_counterfactuals(config_path, index, mode, lambd, temperature, lambd2, max_dist, parts_type):
     print(f"Beginning counterfactual search {index}, mode={mode}, lambd={lambd}, temperature={temperature}, lambd2={lambd2}, max_dist={max_dist}, parts_type={parts_type}")
+    start_time = time.time()
     # parse args
     with open(config_path, "r") as stream:
         config = yaml.safe_load(stream)
@@ -241,6 +241,8 @@ def explain_counterfactuals(config_path, index, mode, lambd, temperature, lambd2
             "edits": list_of_edits,
         }
 
+    end_time = time.time()
+
     # save result
     np.save(os.path.join(dirpath, "counterfactuals.npy"), counterfactuals)
 
@@ -248,6 +250,7 @@ def explain_counterfactuals(config_path, index, mode, lambd, temperature, lambd2
     print("Generated {} counterfactual explanations".format(len(counterfactuals)))
     average_num_edits = np.mean([len(res["edits"]) for res in counterfactuals.values()])
     print("Average number of edits is {:.2f}".format(average_num_edits))
+    print(f"Execution took {end_time - start_time} seconds.")
 
     result = compute_eval_metrics(
         counterfactuals,
@@ -261,7 +264,7 @@ def explain_counterfactuals(config_path, index, mode, lambd, temperature, lambd2
 
     if index is not None:
         with open(result_path, "w") as f:
-            writer = csv.DictWriter(f, fieldnames=["id", "mode", "lambd", "lambd2", "temperature", "max_dist", "parts_type", "avg_edits", "eval_single", "eval_all"])
+            writer = csv.DictWriter(f, fieldnames=["id", "mode", "lambd", "lambd2", "temperature", "max_dist", "parts_type", "avg_edits", "eval_single", "eval_all", "time"])
             writer.writeheader()
             writer.writerow({
                 "id": index,
@@ -274,6 +277,7 @@ def explain_counterfactuals(config_path, index, mode, lambd, temperature, lambd2
                 "avg_edits": average_num_edits,
                 "eval_single": result["single_edit"],
                 "eval_all": result["all_edit"],
+                "time": end_time - start_time,
             })
 
     return result["all_edit"]["Same-KP"], average_num_edits

@@ -47,7 +47,7 @@ def main():
     if args.train:
         study = optuna.create_study(
             storage="sqlite:///optimize_counterfactuals_full.db",
-            study_name="optimize_counterfactuals_performance_vgg_2",
+            study_name="optimize_counterfactuals_performance_vgg_final",
             directions=["maximize", "minimize"],
             load_if_exists=True,
         )
@@ -73,10 +73,10 @@ def main():
 def optimize_counterfactuals(trial):
     return explain_counterfactuals(
         config_path="visual-counterfactuals/counterfactuals/configs/counterfactuals/counterfactuals_ours_cub_vgg16.yaml",
-        index=f"optimize_counterfactuals_performance_vgg_2_{trial.number}",
+        index=f"optimize_counterfactuals_performance_vgg_final_{trial.number}",
         mode="additive",
         lambd=trial.suggest_float("lambd", 0.0, 2.0),
-        temperature=0,
+        temperature=None,
         lambd2=trial.suggest_float("lambd2", 0.0, 10.0),
         max_dist=trial.suggest_float("max_dist", 0.0, 3.0),
         parts_type="full",
@@ -220,7 +220,7 @@ def explain_counterfactuals(config_path, index, mode, lambd, temperature, lambd2
             distractor_aux_features=distractor_aux_features,
             lambd=lambd,
             lambd2=lambd2,
-            temperature=temperature,
+            temperature=temperature or config["counterfactuals_kwargs"]["temperature"],
             topk=config["counterfactuals_kwargs"]["topk"]
             if "topk" in config["counterfactuals_kwargs"].keys()
             else None,

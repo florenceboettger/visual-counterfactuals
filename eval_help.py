@@ -43,7 +43,7 @@ def evaluate_results_spearman(results):
     spearman, pvalue =  stats.spearmanr(x)
     for i, att in enumerate(relevant_attributes):
         corr_string = reduce(lambda a, b: f"{a}, {b}", spearman[i])
-        print(f"{att} correlation is {corr_string}")
+        print(f"{att} Spearman correlation is {corr_string}")
 
 def evaluate_results_pearson(results):
     relevant_attributes = [
@@ -57,7 +57,7 @@ def evaluate_results_pearson(results):
     pearson =  np.corrcoef(x, rowvar=False)
     for i, att in enumerate(relevant_attributes):
         corr_string = reduce(lambda a, b: f"{a}, {b}", pearson[i])
-        print(f"{att} correlation is {corr_string}")
+        print(f"{att} Pearson correlation is {corr_string}")
 
 def evaluate_results_average(results):
     relevant_attributes = [
@@ -82,3 +82,32 @@ def evaluate_results_median(results):
     avg = np.median(x, axis=0)
     for i, att in enumerate(relevant_attributes):
         print(f"{att} median is {avg[i]}")
+
+def evaluate_performance(results):
+    runtimes = [float(r["time"]) for r in results]
+    print(f"Total runtime is {np.sum(runtimes)} seconds.")
+    print(f"Average runtime is {np.average(runtimes)} seconds.")
+    print(f"Minimum runtime is {np.min(runtimes)} seconds.")
+    print(f"Maximum runtime is {np.max(runtimes)} seconds.")
+    print(f"Median runtime is {np.median(runtimes)} seconds.")
+
+def performance_edits_correlation(results):    
+    relevant_attributes = [
+        "avg_edits",
+        "time",
+    ]
+    x = [[float(r[att]) for att in relevant_attributes] for r in results]
+    # pearson = np.corrcoef(x, rowvar=False)
+    pearson, pearson_pvalue = stats.pearsonr(np.transpose(x)[0], np.transpose(x)[1])
+    print(f"Pearson correlation is {pearson}")
+    print(f"Pearson pvalue is {pearson_pvalue}")
+    spearman, spearman_pvalue = stats.spearmanr(x)
+    print(f"Spearman correlation is {spearman}")
+    print(f"Spearman pvalue is {spearman_pvalue}")
+
+def average_time_per_edit(results):
+    runtimes = [float(r["time"]) for r in results]
+    avg_edits = [float(r["avg_edits"]) for r in results]
+    num_iterations = 4411
+    average_time = np.average(runtimes) / (np.average(avg_edits) * num_iterations)
+    print(f"Average time per edit is {average_time} seconds.")

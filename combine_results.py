@@ -24,6 +24,7 @@ def combine_results(name, results_path="//store-01.hpi.uni-potsdam.de/fg/doellne
                 "eval_single_same": eval_single[1],
                 "eval_all_near": eval_all[0],
                 "eval_all_same": eval_all[1],
+                "time": raw_dict["time"],
             })
 
     with open(os.path.join(results_path, "combined", f"{name}.csv"), "w", newline='') as f:

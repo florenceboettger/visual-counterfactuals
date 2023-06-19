@@ -2,7 +2,7 @@ import os
 import csv
 import re
 
-def combine_results(name, results_path="//store-01.hpi.uni-potsdam.de/fg/doellner/florence.boettger/counterfactuals/output/new_results"):
+def combine_results(name, results_path="output/new_results"):
     files = [os.path.join(results_path, f) for f in os.listdir(results_path) if re.search(f"^{name}_\d*.csv$", f)]
 
     results = []

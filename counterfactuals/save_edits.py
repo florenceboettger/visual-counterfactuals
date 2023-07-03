@@ -25,7 +25,7 @@ def main():
     with open(os.path.join(result_path_edits, "edits.csv"), "w") as f:
         writer = csv.DictWriter(f, fieldnames=["query_index", "distractor_index", "query_edit", "distractor_edit"])
         writer.writeheader()
-        for c in counterfactuals:
+        for c in list(counterfactuals.values):
             writer.writerow({
                 "query_index": c["query_index"],
                 "distractor_index": c["distractor_index"],

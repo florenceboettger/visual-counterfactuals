@@ -15,7 +15,8 @@ def plot_study(study, name, is_resnet=False, print_others=True, print_pareto=Tru
         plt.scatter([t.values[0] for t in other_trials], [t.values[1] for t in other_trials], c=[0.8 * map(t) for t in other_trials], cmap='Greens', linewidths=1.0, edgecolors='#000000', norm=Normalize(0.0, 1.0))
     plt.xlabel('KP')
     plt.ylabel('Edits')
-    plt.savefig(f"plots/{name}.png", dpi=500)
+    plt.savefig(f"plots/{name}.png", dpi=500, bbox_inches='tight', pad_inches=0)
+    plt.savefig(f"plots/{name}.pdf", dpi=500, bbox_inches='tight', pad_inches=0)
     plt.show()
 
 def study_spearman(study, x_names, y_length):

@@ -12,7 +12,7 @@ def combine_results(name, results_path="//store-01.hpi.uni-potsdam.de/fg/doellne
             raw_dict = reader[0]
             eval_single = re.findall("\d*\.\d*", raw_dict["eval_single"])
             eval_all = re.findall("\d*\.\d*", raw_dict["eval_all"])
-            results.append({
+            result = {
                 "id": raw_dict["id"],
                 "mode": raw_dict["mode"],
                 "lambd": raw_dict["lambd"],
@@ -24,8 +24,11 @@ def combine_results(name, results_path="//store-01.hpi.uni-potsdam.de/fg/doellne
                 "eval_single_same": eval_single[1],
                 "eval_all_near": eval_all[0],
                 "eval_all_same": eval_all[1],
-                "time": raw_dict["time"],
-            })
+                "time": raw_dict["time"] if "time" in raw_dict else None,
+            }
+            """if "time" in raw_dict:
+                result["time"] = raw_dict["time"]"""
+            results.append(result)
 
     with open(os.path.join(results_path, "combined", f"{name}.csv"), "w", newline='') as f:
         writer = csv.DictWriter(f, fieldnames=results[0].keys())

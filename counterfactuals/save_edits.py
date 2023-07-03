@@ -19,10 +19,10 @@ def main():
         os.path.join(dirpath, "counterfactuals.npy"), allow_pickle=True
     ).item()
 
-    result_path_edits = os.path.join(Path.output_root_dir(), "new_results", "edits", f"{args.input_path}.csv")
+    result_path_edits = os.path.join(Path.output_root_dir(), "new_results", "edits", args.input_path)
     os.makedirs(result_path_edits, exist_ok=True)
 
-    with open(result_path_edits, "w") as f:
+    with open(os.path.join(result_path_edits, "edits.csv"), "w") as f:
         writer = csv.DictWriter(f, fieldnames=["query_index", "distractor_index", "query_edit", "distractor_edit"])
         writer.writeheader()
         for c in counterfactuals:

@@ -261,6 +261,7 @@ def explain_counterfactuals(config_path, index, mode, lambd, temperature, lambd2
     print("Eval results all edits: {}".format(result["all_edit"]))
 
     result_path = os.path.join(Path.output_root_dir(), "new_results", f"{index}.csv")
+    result_path_edits = os.path.join(Path.output_root_dir(), "new_results", "edits", f"{index}.csv")
 
     if index is not None:
         with open(result_path, "w") as f:
@@ -279,6 +280,16 @@ def explain_counterfactuals(config_path, index, mode, lambd, temperature, lambd2
                 "eval_all": result["all_edit"],
                 "time": end_time - start_time,
             })
+        with open(result_path_edits, "w") as f:
+            writer = csv.DictWriter(f, fieldnames=["query_index", "distractor_index", "query_edit", "distractor_edit"])
+            writer.writeheader()
+            for c in counterfactuals:
+                writer.writerow({
+                    "query_index": c["query_index"],
+                    "distractor_index": c["distractor_index"],
+                    "query_edit": c["edits"][0][0],
+                    "distractor_edit": c["edits"][0][1],
+                })
 
     return result["all_edit"]["Same-KP"], average_num_edits
         

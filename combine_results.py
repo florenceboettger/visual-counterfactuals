@@ -26,8 +26,6 @@ def combine_results(name, results_path="//store-01.hpi.uni-potsdam.de/fg/doellne
                 "eval_all_same": eval_all[1],
                 "time": raw_dict["time"] if "time" in raw_dict else None,
             }
-            """if "time" in raw_dict:
-                result["time"] = raw_dict["time"]"""
             results.append(result)
 
     with open(os.path.join(results_path, "combined", f"{name}.csv"), "w", newline='') as f:

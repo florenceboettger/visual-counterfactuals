@@ -58,12 +58,12 @@ def main():
 
     for idx in samples:
         dirpath_output = os.path.join(Path.output_root_dir(), "examples", args.input_path, f"merge_{idx}")
-        os.makedirs(dirpath_output, exist_ok=True)
-        cf = counterfactuals[idx]
-
         fname = f"output/examples/{args.input_path}/merge_{idx}"
         if match_type != "any":
+            dirpath_output = os.path.join(Path.output_root_dir(), "examples", match_type, args.input_path, f"merge_{idx}")
             fname = f"output/examples/{match_type}/{args.input_path}/merge_{idx}"
+        os.makedirs(dirpath_output, exist_ok=True)
+        cf = counterfactuals[idx]
 
         visualize_edits(
             edits=cf["edits"],

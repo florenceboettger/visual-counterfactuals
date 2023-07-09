@@ -52,7 +52,7 @@ def main():
                 reader = list(csv.DictReader(f))
                 for row in reader:
                     if row["match"] == match_type:
-                        sample_source.append(row["query_index"])
+                        sample_source.append(int(row["query_index"]))
 
         samples = np.random.choice(sample_source, n_samples)
 

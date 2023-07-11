@@ -48,6 +48,8 @@ def analyze_type(counterfactuals, match_type):
         "eval_all_near": result["all_edit"]["Near-KP"],
     }
 
+    return row_dict
+
 def main():
     args = parser.parse_args()
 
@@ -66,6 +68,7 @@ def main():
             result_dicts.append(analyze_type(counterfactuals, t))
 
     result_path = os.path.join(Path.output_root_dir(), "new_results", "match_analysis", f"{match_type}_{args.input_path}.csv")
+    os.makedirs(result_path, exist_ok=True)
 
     with open(result_path, "w") as f:
         writer = csv.DictWriter(f, fieldnames=["type", "avg_edits", "eval_single_same", "eval_single_near", "eval_all_same", "eval_all_near"])

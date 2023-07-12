@@ -67,10 +67,12 @@ def main():
         for t in ["any", "identical", "partial", "none"]:
             result_dicts.append(analyze_type(counterfactuals, t))
 
-    result_path = os.path.join(Path.output_root_dir(), "new_results", "match_analysis", f"{match_type}_{args.input_path}.csv")
+    result_path = os.path.join(Path.output_root_dir(), "new_results", "match_analysis")
     os.makedirs(result_path, exist_ok=True)
 
-    with open(result_path, "w") as f:
+    index = args.input_path.split('/')[1]
+
+    with open(os.path.join(result_path, f"{match_type}_{index}.csv"), "w") as f:
         writer = csv.DictWriter(f, fieldnames=["type", "avg_edits", "eval_single_same", "eval_single_near", "eval_all_same", "eval_all_near"])
         writer.writeheader()
         writer.writerows(result_dicts)

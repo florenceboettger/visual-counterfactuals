@@ -32,7 +32,7 @@ def analyze_type(counterfactuals, match_type):
     print("Average number of edits is {:.2f}".format(average_num_edits))
 
     result = compute_eval_metrics(
-        counterfactuals,
+        filtered_counterfactuals,
         dataset=get_test_dataset(transform=get_test_transform(), max_dist=0, parts_type="full"),
     )
 

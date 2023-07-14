@@ -19,7 +19,7 @@ def main():
         os.path.join(dirpath, "counterfactuals.npy"), allow_pickle=True
     ).item()
 
-    dataset = get_test_dataset(get_vis_transform(), return_image_only=True)
+    dataset = get_test_dataset(get_vis_transform(), return_image_only=False)
 
     result_path_edits = os.path.join(Path.output_root_dir(), "new_results", "edits", args.input_path)
     os.makedirs(result_path_edits, exist_ok=True)
@@ -29,7 +29,6 @@ def main():
         writer.writeheader()
         for c in list(counterfactuals.values()):
             query_index = c["query_index"]
-            dataset.__getitem__(int(query_index))
             bbox = dataset.__getitem__(int(query_index))["bbox"]
             writer.writerow({
                 "query_index": query_index,

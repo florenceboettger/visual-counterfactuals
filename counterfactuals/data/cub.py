@@ -110,7 +110,7 @@ class Cub(Dataset):
 
         # load bbox
         image_bbox = pd.read_csv(
-            self._dataset_folder.joinpath("parts", "bounding_boxes.txt"),
+            self._dataset_folder.joinpath("bounding_boxes.txt"),
             sep=" ",
             names=["img_id", "x_min", "y_min", "width", "height"],
         )
@@ -231,8 +231,6 @@ class Cub(Dataset):
         except Exception as e:
             print(f"Error: {e}")
             return False
-        
-        print(self._dataset_folder)
 
         for _, row in self._data.iterrows():
             filepath = self._dataset_folder.joinpath("images", row.filepath)

@@ -108,6 +108,13 @@ class Cub(Dataset):
             lambda x: list(x)
         )
 
+        # load bbox
+        image_bbox = pd.read_csv(
+            self._dataset_folder.joinpath("parts", "bounding_boxes.txt"),
+            sep=" ",
+            names=["img_id", "x_min", "y_min", "width", "height"],
+        )
+
         # define remapping for part instances to merge left-right instances
         parts_name_remap = {}
         if self._parts_type == "full":
@@ -209,6 +216,7 @@ class Cub(Dataset):
         # merge
         data = images.merge(image_class_labels, on="img_id")
         data = data.merge(image_parts, on="img_id")
+        data = data.merge(image_bbox, on="img_id")
         self._data = data.merge(train_eval_split, on="img_id")
 
         # select split
@@ -312,17 +320,22 @@ class Cub(Dataset):
         part_ids = part_ids[valid_coords]
         part_locs = part_locs[valid_coords]
 
+        # load bbox
+        bbox = [np.array([sample.x_min, sample.y_min, sample.width, sample.height], dtyoe=np.float32)]
+
         # transform
         if self._transform is not None:
             sample = self._transform(
                 image=np.array(image, dtype=np.uint8),
                 keypoints=part_locs,
                 keypoints_ids=part_ids,
+                bboxes=bbox,
             )
             sample = {
                 "image": sample["image"],
                 "part_locs": np.array(sample["keypoints"]),
                 "part_ids": np.array(sample["keypoints_ids"]),
+                "bbox": np.array(sample["bboxes"])[0],
             }
 
         else:
@@ -330,6 +343,7 @@ class Cub(Dataset):
                 "image": image,
                 "part_locs": part_locs,
                 "part_ids": part_ids,
+                "bbox": bbox,
             }
 
         parts = self._get_parts_matrix(sample)
@@ -338,6 +352,7 @@ class Cub(Dataset):
             "image": sample["image"],
             "target": target,
             "parts": parts,
+            "bbox": sample["bbox"]
         }
 
         return output

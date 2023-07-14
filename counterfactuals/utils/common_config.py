@@ -66,6 +66,7 @@ def get_test_transform():
         keypoint_params=albumentations.KeypointParams(
             format="xy", remove_invisible=True, label_fields=["keypoints_ids"]
         ),
+        bbox_params=albumentations.BboxParams(format='coco'),
     )
 
 

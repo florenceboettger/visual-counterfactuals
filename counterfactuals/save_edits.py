@@ -19,18 +19,23 @@ def main():
         os.path.join(dirpath, "counterfactuals.npy"), allow_pickle=True
     ).item()
 
+    dataset = get_test_dataset(get_vis_transform(), return_image_only=True)
+
     result_path_edits = os.path.join(Path.output_root_dir(), "new_results", "edits", args.input_path)
     os.makedirs(result_path_edits, exist_ok=True)
 
     with open(os.path.join(result_path_edits, "edits.csv"), "w") as f:
-        writer = csv.DictWriter(f, fieldnames=["query_index", "distractor_index", "query_edit", "distractor_edit"])
+        writer = csv.DictWriter(f, fieldnames=["query_index", "distractor_index", "query_edit", "distractor_edit", "bbox"])
         writer.writeheader()
         for c in list(counterfactuals.values()):
+            query_index = c["query_index"]
+            bbox = dataset.__getitem__(query_index)["bbox"]
             writer.writerow({
-                "query_index": c["query_index"],
+                "query_index": query_index,
                 "distractor_index": c["distractor_index"],
                 "query_edit": c["edits"][0][0],
                 "distractor_edit": c["edits"][0][1],
+                "bbox": bbox,
             })
 
 if __name__ == "__main__":

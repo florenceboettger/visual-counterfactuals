@@ -355,6 +355,8 @@ class Cub(Dataset):
             "bbox": sample["bbox"]
         }
 
+        print(output)
+
         return output
 
     def get_target(self, target):

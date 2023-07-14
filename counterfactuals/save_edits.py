@@ -35,7 +35,10 @@ def main():
                 "distractor_index": c["distractor_index"],
                 "query_edit": c["edits"][0][0],
                 "distractor_edit": c["edits"][0][1],
-                "bbox": bbox,
+                "bbox_x": bbox[0],
+                "bbox_y": bbox[1],
+                "bbox_width": bbox[2],
+                "bbox_height": bbox[3],
             })
 
 if __name__ == "__main__":

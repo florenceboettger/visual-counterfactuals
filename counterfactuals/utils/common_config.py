@@ -51,7 +51,8 @@ def get_vis_transform():
         [
             albumentations.SmallestMaxSize(max_size=256),
             albumentations.CenterCrop(width=224, height=224),
-        ]
+        ],
+        bbox_params=albumentations.BboxParams(format='coco'),
     )
 
 

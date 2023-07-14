@@ -4,7 +4,7 @@ import os
 
 import numpy as np
 
-from utils.common_config import get_test_dataset, get_vis_transform
+from utils.common_config import get_test_dataset, get_test_transform
 from utils.path import Path
 
 parser = argparse.ArgumentParser(description="Save first edit for counterfactual explanations")
@@ -19,7 +19,7 @@ def main():
         os.path.join(dirpath, "counterfactuals.npy"), allow_pickle=True
     ).item()
 
-    dataset = get_test_dataset(get_vis_transform(), return_image_only=False)
+    dataset = get_test_dataset(get_test_transform(), return_image_only=False)
 
     result_path_edits = os.path.join(Path.output_root_dir(), "new_results", "edits", args.input_path)
     os.makedirs(result_path_edits, exist_ok=True)

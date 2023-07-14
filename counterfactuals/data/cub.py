@@ -231,6 +231,8 @@ class Cub(Dataset):
         except Exception as e:
             print(f"Error: {e}")
             return False
+        
+        print(self._dataset_folder)
 
         for _, row in self._data.iterrows():
             filepath = self._dataset_folder.joinpath("images", row.filepath)

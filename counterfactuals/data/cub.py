@@ -329,6 +329,8 @@ class Cub(Dataset):
             "outer"
         ]]
 
+        print(bbox)
+
         # transform
         if self._transform is not None:
             sample = self._transform(

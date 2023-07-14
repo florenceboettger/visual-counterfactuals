@@ -322,6 +322,7 @@ class Cub(Dataset):
 
         # load bbox
         bbox = [np.array([sample.x_min, sample.y_min, sample.width, sample.height], dtype=np.float32)]
+        bbox[0].append("outer")
 
         # transform
         if self._transform is not None:

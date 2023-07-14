@@ -280,9 +280,7 @@ class Cub(Dataset):
         return len(self._data)
 
     def __getitem__(self, idx):
-        print(idx)
         sample = self._data.iloc[idx]
-        print(sample)
         path = self._dataset_folder.joinpath("images", sample.filepath)
 
         image = self._loader(path)
@@ -323,7 +321,7 @@ class Cub(Dataset):
         part_locs = part_locs[valid_coords]
 
         # load bbox
-        bbox = [np.array([sample.x_min, sample.y_min, sample.width, sample.height], dtyoe=np.float32)]
+        bbox = [np.array([sample.x_min, sample.y_min, sample.width, sample.height], dtype=np.float32)]
 
         # transform
         if self._transform is not None:

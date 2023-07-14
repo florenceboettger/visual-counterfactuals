@@ -321,8 +321,13 @@ class Cub(Dataset):
         part_locs = part_locs[valid_coords]
 
         # load bbox
-        bbox = [np.array([sample.x_min, sample.y_min, sample.width, sample.height], dtype=np.float32)]
-        bbox[0].append("outer")
+        bbox = [np.array([
+            float(sample.x_min),
+            float(sample.y_min),
+            float(sample.width),
+            float(sample.height),
+            "outer"
+        ])]
 
         # transform
         if self._transform is not None:

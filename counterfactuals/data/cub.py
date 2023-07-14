@@ -322,14 +322,12 @@ class Cub(Dataset):
 
         # load bbox
         bbox = [[
-            float(sample.x_min),
-            float(sample.y_min),
-            float(sample.width),
-            float(sample.height),
+            max(float(sample.x_min), 0),
+            max(float(sample.y_min), 0),
+            min(float(sample.width), width - sample.x_min),
+            min(float(sample.height), height - sample.y_min),
             "outer"
         ]]
-
-        print(bbox)
 
         # transform
         if self._transform is not None:
@@ -362,8 +360,6 @@ class Cub(Dataset):
             "parts": parts,
             "bbox": sample["bbox"]
         }
-
-        print(output)
 
         return output
 

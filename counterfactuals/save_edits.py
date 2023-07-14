@@ -29,6 +29,7 @@ def main():
         writer.writeheader()
         for c in list(counterfactuals.values()):
             query_index = c["query_index"]
+            dataset.__getitem__(int(query_index))
             bbox = dataset.__getitem__(int(query_index))["bbox"]
             writer.writerow({
                 "query_index": query_index,

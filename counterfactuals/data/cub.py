@@ -280,7 +280,9 @@ class Cub(Dataset):
         return len(self._data)
 
     def __getitem__(self, idx):
+        print(idx)
         sample = self._data.iloc[idx]
+        print(sample)
         path = self._dataset_folder.joinpath("images", sample.filepath)
 
         image = self._loader(path)

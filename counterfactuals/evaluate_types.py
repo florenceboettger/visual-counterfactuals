@@ -22,7 +22,7 @@ def analyze_type(counterfactuals, match_type, input_path):
             reader = list(csv.DictReader(f))
             sample_source = [int(row["query_index"]) for row in reader if row["match"] == match_type]
 
-    edits_path = os.path.join(Path.outpoot_root_dir(), f"new_results/edits/{input_path}/edits.csv")
+    edits_path = os.path.join(Path.output_root_dir(), f"new_results/edits/{input_path}/edits.csv")
     with open(edits_path, "r") as f:
         reader = list(csv.DictReader(f))
         edits = [row for row in reader if int(row["query_index"]) in sample_source]

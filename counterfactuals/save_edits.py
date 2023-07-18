@@ -30,9 +30,14 @@ def main():
         for c in list(counterfactuals.values()):
             query_index = c["query_index"]
             bbox = dataset.__getitem__(int(query_index))["bbox"]
+            query_class = dataset.__getitem__(int(query_index))["target"]
+            distractor_index = c["distractor_index"]
+            distractor_class = dataset.__getitem__(int(distractor_index[0]))["target"]
             writer.writerow({
                 "query_index": query_index,
-                "distractor_index": c["distractor_index"],
+                "query_class": query_class,
+                "distractor_index": distractor_index,
+                "distractor_class": distractor_class,
                 "query_edit": c["edits"][0][0],
                 "distractor_edit": c["edits"][0][1],
                 "bbox_x": bbox[0],

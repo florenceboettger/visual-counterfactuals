@@ -25,7 +25,7 @@ def main():
     os.makedirs(result_path_edits, exist_ok=True)
 
     with open(os.path.join(result_path_edits, "edits.csv"), "w") as f:
-        writer = csv.DictWriter(f, fieldnames=["query_index", "distractor_index", "query_edit", "distractor_edit", "bbox_x", "bbox_y", "bbox_width", "bbox_height"])
+        writer = csv.DictWriter(f, fieldnames=["query_index", "query_class", "distractor_index", "distractor_class", "query_edit", "distractor_edit", "bbox_x", "bbox_y", "bbox_width", "bbox_height"])
         writer.writeheader()
         for c in list(counterfactuals.values()):
             query_index = c["query_index"]

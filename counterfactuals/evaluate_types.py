@@ -13,14 +13,16 @@ from explainer.eval import compute_eval_metrics
 parser = argparse.ArgumentParser(description="Evaluate counterfactual explanations based on subsets.")
 parser.add_argument("--input_path", type=str, required=True)
 parser.add_argument("--type", choices=["any", "identical", "partial", "none", "full"], default="full", required=False)
+parser.add_argument("--query_class", type=int, required=False)
 
-def analyze_type(counterfactuals, match_type, input_path):
+def analyze_type(counterfactuals, input_path, match_type="any", query_class=None):
     sample_source = list(counterfactuals.keys())
-    if match_type != "any":
-        dict_path = os.path.join(Path.output_root_dir(), "new_results/edits/matches.csv")
-        with open(dict_path, "r") as f:
-            reader = list(csv.DictReader(f))
-            sample_source = [int(row["query_index"]) for row in reader if row["match"] == match_type]
+    dict_path = os.path.join(Path.output_root_dir(), "new_results/edits/matches.csv")
+    with open(dict_path, "r") as f:
+        reader = list(csv.DictReader(f))
+        sample_source = [int(row["query_index"]) for row in reader if (match_type == "any" or row["match"] == match_type) and (query_class is None or row["query_class"] == query_class)]
+
+    print(len(sample_source))
 
     edits_path = os.path.join(Path.output_root_dir(), f"new_results/edits/{input_path}/edits.csv")
     with open(edits_path, "r") as f:
@@ -61,6 +63,7 @@ def analyze_type(counterfactuals, match_type, input_path):
 
     row_dict = {
         "type": match_type,
+        "query_class": query_class,
         "avg_edits": average_num_edits,
         "eval_single_same": result["single_edit"]["Same-KP"],
         "eval_single_near": result["single_edit"]["Near-KP"],
@@ -83,6 +86,7 @@ def main():
 
     dirpath = os.path.join(Path.output_root_dir(), args.input_path)    
     match_type = args.type
+    query_class = args.query_class
 
     counterfactuals = np.load(
         os.path.join(dirpath, "counterfactuals.npy"), allow_pickle=True
@@ -90,19 +94,20 @@ def main():
 
     result_dicts = []
     if match_type != "full":
-        result_dicts.append(analyze_type(counterfactuals, match_type, args.input_path))
+        result_dicts.append(analyze_type(counterfactuals, args.input_path, match_type=match_type, query_class=query_class))
     else:
         for t in ["any", "identical", "partial", "none"]:
-            result_dicts.append(analyze_type(counterfactuals, t, args.input_path))
+            result_dicts.append(analyze_type(counterfactuals, args.input_path, match_type=t, query_class=query_class))
 
     result_path = os.path.join(Path.output_root_dir(), "new_results", "match_analysis")
     os.makedirs(result_path, exist_ok=True)
 
     index = args.input_path.split('/')[1]
 
-    with open(os.path.join(result_path, f"{match_type}_{index}.csv"), "w") as f:
+    with open(os.path.join(result_path, f"{match_type}_{query_class or 'none'}_{index}.csv"), "w") as f:
         writer = csv.DictWriter(f, fieldnames=[
             "type",
+            "query_class",
             "avg_edits",
             "eval_single_same",
             "eval_single_near",

@@ -20,7 +20,11 @@ def analyze_type(counterfactuals, input_path, match_type="any", query_class=None
     dict_path = os.path.join(Path.output_root_dir(), "new_results/edits/matches.csv")
     with open(dict_path, "r") as f:
         reader = list(csv.DictReader(f))
-        sample_source = [int(row["query_index"]) for row in reader if (match_type == "any" or row["match"] == match_type) and (query_class is None or row["query_class"] == query_class)]
+        print(query_class)
+        print(match_type)
+        print(reader[0])
+        print(reader[4192])
+        sample_source = [int(row["query_index"]) for row in reader if ((match_type == "any" or row["match"] == match_type) and (query_class is None or row["query_class"] == query_class))]
 
     print(len(sample_source))
 

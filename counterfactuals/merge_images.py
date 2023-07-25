@@ -17,7 +17,7 @@ parser.add_argument("--samples", type=int, required=False, default=10)
 parser.add_argument("--edits", type=int, required=False)
 parser.add_argument("--index", type=int, required=False)
 parser.add_argument("--radius", type=float, required=False)
-parser.add_argument("--type", choices=["any", "identical", "partial", "none"], default="any", required=False)
+parser.add_argument("--type", choices=["any", "identical", "partial", "none", "non-identical"], default="any", required=False)
 parser.add_argument("--query_class", type=int, required=False)
 
 
@@ -53,7 +53,7 @@ def main():
             with open(dict_path, "r") as f:
                 reader = list(csv.DictReader(f))
                 for row in reader:
-                    if (row["match"] == match_type or match_type == "any") and (int(row["query_class"]) == query_class or query_class is None):
+                    if (row["match"] == match_type or match_type == "any" or (match_type == "non-identical" and (row["match"] in ["partial", "none"]))) and (int(row["query_class"]) == query_class or query_class is None):
                         sample_source.append(int(row["query_index"]))
 
         if n_samples == 0:

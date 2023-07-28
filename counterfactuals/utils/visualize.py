@@ -7,6 +7,7 @@
 import matplotlib.patches as patches
 import matplotlib.pyplot as plt
 import numpy as np
+import cv2 as cv
 
 
 def visualize_counterfactuals(
@@ -197,14 +198,20 @@ def visualize_edit(
     x_coord,
     y_coord,
     n_pix,
-    fname
+    fname,
+    blur=False
 ):
     plt.figure(figsize=(10, 10))
     ax = plt.axes([0, 0, 1, 1], frameon=False)
     ax.set_axis_off()
     ax.set_xlim(0, 1)
     ax.set_ylim(0, 1)
-    plt.imshow(img, extent=(0, 1, 0, 1))
+
+    if blur:
+        blurred_img = cv.GaussianBlur(img, (5,5), 0)        
+        plt.imshow(blurred_img, extent=(0, 1, 0, 1))
+    else:
+        plt.imshow(img, extent=(0, 1, 0, 1))
 
     rect = patches.Rectangle(
             (x_coord / n_pix, 1 - (y_coord + 1) / n_pix),
@@ -231,18 +238,21 @@ def visualize_edits(
     radius=0.5*np.sqrt(2),
     n_edits=1,
     fname=None,
+    blur_edits=False,
+    merge=False,
 ):
-    for i in range(0, n_edits):
-        visualize_merge(
-            edits=edits,
-            query_index=query_index,
-            distractor_index=distractor_index,
-            dataset=dataset,
-            n_pix=n_pix,
-            radius=radius,
-            n_edits=i + 1,
-            fname=f"{fname}/merge_{i}.png"
-        )
+    if merge:
+        for i in range(0, n_edits):
+            visualize_merge(
+                edits=edits,
+                query_index=query_index,
+                distractor_index=distractor_index,
+                dataset=dataset,
+                n_pix=n_pix,
+                radius=radius,
+                n_edits=i + 1,
+                fname=f"{fname}/merge_{i}.png"
+            )
     
     query_img = dataset.__getitem__(query_index)
     save_image(query_img, f"{fname}/query.png")
@@ -259,10 +269,10 @@ def visualize_edits(
         row_index_query = cell_index_query // n_pix
         col_index_query = cell_index_query % n_pix
 
-        visualize_edit(query_img, col_index_query, row_index_query, n_pix, f"{fname}/query_edit_{i}.png")     
+        visualize_edit(query_img, col_index_query, row_index_query, n_pix, f"{fname}/query_edit{'_blur' if blur_edits else ''}_{i}.png", blur=blur_edits)
 
         cell_index_distractor = cell_index_distractor % (n_pix**2)
         row_index_distractor = cell_index_distractor // n_pix
-        col_index_distractor = cell_index_distractor % n_pix        
+        col_index_distractor = cell_index_distractor % n_pix
 
-        visualize_edit(distractor_img, col_index_distractor, row_index_distractor, n_pix, f"{fname}/distractor_edit_{i}.png")     
+        visualize_edit(distractor_img, col_index_distractor, row_index_distractor, n_pix, f"{fname}/distractor_edit{'_blur' if blur_edits else ''}_{i}.png", blur=blur_edits)

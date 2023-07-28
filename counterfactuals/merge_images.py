@@ -81,6 +81,7 @@ def main():
             radius=radius,
             n_edits=n_edits,
             fname=fname,
+            blur_edits=True,
         )
 
 

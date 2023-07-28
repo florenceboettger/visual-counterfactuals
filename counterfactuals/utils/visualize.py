@@ -214,7 +214,7 @@ def visualize_edit(
     ax.set_ylim(0, 1)
 
     if blur:
-        blurred_img = cv.GaussianBlur(img, (10, 10), 0)
+        blurred_img = cv.GaussianBlur(img, (11, 11), 0)
         plt.imshow(blurred_img, extent=(0, 1, 0, 1))
 
         crop = [
@@ -223,7 +223,7 @@ def visualize_edit(
             x_coord * width_cell,
             (x_coord + 1) * width_cell
         ]
-        
+
         img_cropped = img[crop[0]:crop[1], crop[2]:crop[3]]
         extent = (x_coord / n_pix, (x_coord + 1) / n_pix, (n_pix - y_coord - 1) / n_pix, (n_pix - y_coord) / n_pix)
 

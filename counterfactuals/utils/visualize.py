@@ -192,23 +192,83 @@ def save_image(
         plt.savefig(fname, bbox_inches="tight", dpi=300)
     plt.close()
 
+class ImageData:
+    def __init__(self, img, x, y, ax):
+        self.img = img
+        self.x = x
+        self.y = y
+        self.ax = ax
 
 def visualize_edit(
-    img,
-    x_coord,
-    y_coord,
+    query_img,
+    query_x,
+    query_y,
+    distractor_img,
+    distractor_x,
+    distractor_y,
     n_pix,
     fname,
     blur=False
 ):    
-    height, width = img.shape[0], img.shape[1]
+    height, width = query_img.shape[0], query_img.shape[1]
 
     # geometric properties of cells
     width_cell = width // n_pix
     height_cell = height // n_pix
 
-    plt.figure(figsize=(10, 10))
-    ax = plt.axes([0, 0, 1, 1], frameon=False)
+    fig = plt.figure(figsize=(10, 20))
+    query_ax = fig.add_subplot(121)
+    query_ax.set_title("Query Image (Class Alpha)")
+    distractor_ax = fig.add_subplot(122)
+    distractor_ax.set_title("Distractor Image (Class Bravo)")
+    # fig, axs = plt.subplots(1, 2)
+
+    images = [
+        ImageData(query_img, query_x, query_y, query_ax),
+        ImageData(distractor_img, distractor_x, distractor_y, distractor_ax)
+    ]
+
+    for d in images:
+        d.ax.set_axis_off()
+        d.ax.set_xlim(0, 1)
+        d.ax.set_ylim(0, 1)
+
+        if blur:
+            blurred_img = cv.GaussianBlur(d.img, (11, 11), 0)
+            d.ax.imshow(blurred_img, extent=(0, 1, 0, 1))
+
+            crop = [
+                d.y * height_cell,
+                (d.y + 1) * height_cell,
+                d.x * width_cell,
+                (d.x + 1) * width_cell
+            ]
+
+            img_cropped = d.img[crop[0]:crop[1], crop[2]:crop[3]]
+            extent = (d.x / n_pix, (d.x + 1) / n_pix, (n_pix - d.y - 1) / n_pix, (n_pix - d.y) / n_pix)
+
+            d.ax.imshow(img_cropped, extent=extent)
+        else:
+            d.ax.imshow(d.img, extent=(0, 1, 0, 1))
+
+        rect = patches.Rectangle(
+                (d.x / n_pix, 1 - (d.y + 1) / n_pix),
+                1 / n_pix,
+                1 / n_pix,
+                linewidth=5,
+                edgecolor="k",
+                facecolor="none",
+        )
+        d.ax.add_patch(rect)
+    
+    plt.tight_layout()
+    if fname is None:
+        plt.show()
+    else:
+        plt.savefig(fname, bbox_inches="tight", dpi=300)
+    plt.close()
+
+    """ax = plt.axes([0, 0, 1, 1], frameon=False)
     ax.set_axis_off()
     ax.set_xlim(0, 1)
     ax.set_ylim(0, 1)
@@ -245,7 +305,7 @@ def visualize_edit(
         plt.show()
     else:
         plt.savefig(fname, bbox_inches="tight", dpi=300)
-    plt.close()
+    plt.close()"""
 
 def visualize_edits(
     edits,
@@ -287,10 +347,13 @@ def visualize_edits(
         row_index_query = cell_index_query // n_pix
         col_index_query = cell_index_query % n_pix
 
-        visualize_edit(query_img, col_index_query, row_index_query, n_pix, f"{fname}/query_edit{'_blur' if blur_edits else ''}_{i}.png", blur=blur_edits)
+        # visualize_edit(query_img, col_index_query, row_index_query, n_pix, f"{fname}/query_edit{'_blur' if blur_edits else ''}_{i}.png", blur=blur_edits)
 
         cell_index_distractor = cell_index_distractor % (n_pix**2)
         row_index_distractor = cell_index_distractor // n_pix
         col_index_distractor = cell_index_distractor % n_pix
 
-        visualize_edit(distractor_img, col_index_distractor, row_index_distractor, n_pix, f"{fname}/distractor_edit{'_blur' if blur_edits else ''}_{i}.png", blur=blur_edits)
+        # visualize_edit(distractor_img, col_index_distractor, row_index_distractor, n_pix, f"{fname}/distractor_edit{'_blur' if blur_edits else ''}_{i}.png", blur=blur_edits)
+        visualize_edit(query_img, col_index_query, row_index_query,
+                       distractor_img, col_index_distractor, row_index_distractor,
+                       n_pix, f"{fname}/edit{'_blur' if blur_edits else ''}_{i}.png", blur=blur_edits)

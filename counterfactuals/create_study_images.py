@@ -84,3 +84,6 @@ def main():
         img_path = os.path.join(output_path, f"test_{i}.png")
         os.makedirs(img_path, exist_ok=True)
         save_image(img, img_path)
+
+if __name__ == "__main__":
+    main()

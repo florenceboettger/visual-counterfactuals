@@ -61,7 +61,7 @@ def main():
                 query_indices.append(int(row["query_index"]))
             if (int(row["query_class"]) == distractor_class):
                 distractor_indices.append(int(row["query_index"]))
-                # note that after we have determined the training image pairs, we need to remove the distractor indices of those from this list
+                # note that after we have determined the training image pairs, we later need to remove the distractor indices of those from this list
 
     print(f"query_indices: {query_indices}")
     print(f"distractor_indices: {distractor_indices}")
@@ -70,10 +70,10 @@ def main():
 
     distractor_train = []
     for i in query_train:
-        edits = counterfactuals[i]["edit"]
+        edits = counterfactuals[i]["edits"]
         cell_index_distractor = edits[0][1]
-        distractor_index = counterfactuals[i]["distractor_index"]
-        distractor_train.append(int(distractor_index[cell_index_distractor // (n_pix**2)]))
+        distractor_indices = counterfactuals[i]["distractor_index"]
+        distractor_train.append(int(distractor_indices[cell_index_distractor // (n_pix**2)]))
 
     print(f"distractor_train: {distractor_train}")
 

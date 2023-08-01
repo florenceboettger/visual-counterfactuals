@@ -38,8 +38,8 @@ def main():
             relevant_data.append(row)
 
     chosen_data = np.random.choice(relevant_data)
-    query_class = chosen_data["query_class"]
-    distractor_class = chosen_data["distractor_class"]
+    query_class = int(chosen_data["query_class"])
+    distractor_class = int(chosen_data["distractor_class"])
 
     print(f"chosen class: {query_class}")
 
@@ -56,11 +56,7 @@ def main():
     matches_path = os.path.join(Path.output_root_dir(), "new_results/edits/matches.csv")
     with open(matches_path, "r") as f:
         reader = list(csv.DictReader(f))
-        i = 0
         for row in reader:
-            if i == 2615:
-                print(row)
-            i += 1
             if (int(row["query_class"]) == query_class):
                 query_indices.append(int(row["query_index"]))
             if (int(row["query_class"]) == distractor_class):
@@ -77,7 +73,7 @@ def main():
         edits = counterfactuals[i]["edit"]
         cell_index_distractor = edits[0][1]
         distractor_index = counterfactuals[i]["distractor_index"]
-        distractor_train.append(distractor_index[cell_index_distractor // (n_pix**2)])
+        distractor_train.append(int(distractor_index[cell_index_distractor // (n_pix**2)]))
 
     print(f"distractor_train: {distractor_train}")
 

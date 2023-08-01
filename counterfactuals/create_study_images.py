@@ -29,6 +29,7 @@ def main():
     print(f"chosen seed: {seed}")
 
     output_path = os.path.join(Path.output_root_dir(), "study", args.input_path)
+    os.makedirs(output_path, exist_ok=True)
 
     relevant_data = []
     dict_path = os.path.join(Path.output_root_dir(), "new_results/edits/relevant_data.csv")
@@ -99,7 +100,6 @@ def main():
         
         img = dataset.__getitem__(index)
         img_path = os.path.join(output_path, f"test_{i}.png")
-        os.makedirs(img_path, exist_ok=True)
         save_image(img, img_path)
 
 if __name__ == "__main__":

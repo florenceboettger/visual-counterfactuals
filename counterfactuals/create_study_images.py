@@ -20,7 +20,7 @@ def main():
     dirpath = os.path.join(Path.output_root_dir(), args.input_path)
     n_samples = args.samples
     seed = args.seed or int(time.time())
-    n_pix = 7s
+    n_pix = 7
 
     np.random.seed(seed)
 

@@ -1,6 +1,7 @@
 import argparse
 import os
 import csv
+import time
 
 import numpy as np
 
@@ -17,10 +18,13 @@ def main():
     args = parser.parse_args()
 
     dirpath = os.path.join(Path.output_root_dir(), args.input_path)
-    n_samples = args.train_samples
+    n_samples = args.samples
+    seed = args.seed or int(time.time())
+    n_pix = 7s
 
-    if args.seed is not None:
-        np.random.seed(args.seed)
+    np.random.seed(seed)
+
+    print(f"chosen seed: {seed}")
 
     output_path = os.path.join(Path.output_root_dir(), "study", args.input_path)
 
@@ -60,17 +64,27 @@ def main():
     # select ten query indices to be potentially selected for testing and ten query indices to be part of training
     (query_test, query_train) = np.random.choice(query_indices, (2, n_samples), replace=False)
 
-    # distractor_train = [counterfactuals[i]["distractor_index"] for i in query_train]
-    distractor_train = [] # TODO: fix this
+    distractor_train = []
+    for i in query_train:
+        edits = counterfactuals[i]["edit"]
+        cell_index_distractor = edits[0][1]
+        distractor_index = counterfactuals[i]["distractor_index"]
+        distractor_train.append(distractor_index[cell_index_distractor // (n_pix**2)])
+
+    print(f"distractor_train: {distractor_train}")
+    print(f"distractor_indices (old): {distractor_indices}")
 
     # don't reuse distractor images for testing that we use in training
     distractor_indices = [i for i in distractor_indices if i not in distractor_train]
     distractor_test = np.random.choice(distractor_indices, n_samples, replace=False)
+    
+    print(f"distractor_indices (new): {distractor_indices}")
+    print(f"distractor_test: {distractor_test}")
 
     # 0: query (alpha), 1: distractor (bravo)
     test_choices = np.random.randint(2, size=10)
     print(f"test_choices: {test_choices}")
-    # TODO: save these
+    # TODO: save all this somewhere
 
     # generate the ten testing images
     for i in range(n_samples):

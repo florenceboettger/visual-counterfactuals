@@ -19,7 +19,9 @@ def main():
 
     dirpath = os.path.join(Path.output_root_dir(), args.input_path)
     n_samples = args.samples
-    seed = args.seed or int(time.time())
+    seed = args.seed
+    if seed is None:
+        seed = int(time.time())
     n_pix = 7
 
     np.random.seed(seed)
@@ -61,6 +63,8 @@ def main():
                 distractor_indices.append(int(row["query_index"]))
                 # note that after we have determined the training image pairs, we need to remove the distractor indices of those from this list
 
+    print(f"query_indices: {query_indices}")
+    print(f"distractor_indices: {distractor_indices}")
     # select ten query indices to be potentially selected for testing and ten query indices to be part of training
     (query_test, query_train) = np.random.choice(query_indices, (2, n_samples), replace=False)
 
@@ -72,7 +76,6 @@ def main():
         distractor_train.append(distractor_index[cell_index_distractor // (n_pix**2)])
 
     print(f"distractor_train: {distractor_train}")
-    print(f"distractor_indices (old): {distractor_indices}")
 
     # don't reuse distractor images for testing that we use in training
     distractor_indices = [i for i in distractor_indices if i not in distractor_train]

@@ -28,7 +28,7 @@ def main():
 
     print(f"chosen seed: {seed}")
 
-    output_path = os.path.join(Path.output_root_dir(), "study", args.input_path)
+    output_path = os.path.join(Path.output_root_dir(), "study", seed, args.input_path)
     os.makedirs(output_path, exist_ok=True)
 
     relevant_data = []

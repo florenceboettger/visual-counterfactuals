@@ -56,7 +56,11 @@ def main():
     matches_path = os.path.join(Path.output_root_dir(), "new_results/edits/matches.csv")
     with open(matches_path, "r") as f:
         reader = list(csv.DictReader(f))
+        i = 0
         for row in reader:
+            if i == 2615:
+                print(row)
+            i += 1
             if (int(row["query_class"]) == query_class):
                 query_indices.append(int(row["query_index"]))
             if (int(row["query_class"]) == distractor_class):

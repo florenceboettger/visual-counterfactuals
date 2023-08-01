@@ -102,5 +102,26 @@ def main():
         img_path = os.path.join(output_path, f"test_{i}.png")
         save_image(img, img_path)
 
+    # generate the ten training images
+    for i in range(n_samples):
+        query_index = query_train[i]
+        distractor_index = distractor_train[i]
+
+        query_img = dataset.__getitem__(query_index)
+        distractor_img = dataset.__getitem__(distractor_index)
+        
+        edit = counterfactuals[query_index]["edits"][0]
+        
+        row_index_query = edit[0] // n_pix
+        col_index_query = edit[0] % n_pix
+
+        cell_index_distractor = edit[1] % (n_pix**2)        
+        row_index_distractor = cell_index_distractor // n_pix
+        col_index_distractor = cell_index_distractor % n_pix
+        
+        visualize_edit(query_img, col_index_query, row_index_query,
+                       distractor_img, col_index_distractor, row_index_distractor,
+                       n_pix, f"train_{i}.png", blur=True)
+
 if __name__ == "__main__":
     main()

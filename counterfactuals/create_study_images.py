@@ -119,9 +119,11 @@ def main():
         row_index_distractor = cell_index_distractor // n_pix
         col_index_distractor = cell_index_distractor % n_pix
         
+        img_path = os.path.join(output_path, f"train_{i}.png")
+        
         visualize_edit(query_img, col_index_query, row_index_query,
                        distractor_img, col_index_distractor, row_index_distractor,
-                       n_pix, f"train_{i}.png", blur=True)
+                       n_pix, img_path, blur=True)
 
 if __name__ == "__main__":
     main()

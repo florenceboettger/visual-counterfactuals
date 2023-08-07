@@ -92,6 +92,7 @@ def main():
 
     with open(os.path.join(output_path, "answers.csv"), "w", newline='') as f:
         writer = csv.DictWriter(f, fieldnames=["seed", "n_samples", "query_class", "distractor_class", "query_test", "query_train", "distractor_test", "distractor_train", "test_choices"])
+        writer.writeheader()
         writer.writerow({
             "seed": seed,
             "n_samples": n_samples,

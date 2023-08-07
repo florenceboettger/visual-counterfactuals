@@ -90,7 +90,7 @@ def main():
     print(f"test_choices: {test_choices}")
     # TODO: save all this somewhere
 
-    with open(os.path.join(output_path, "answers.csv", newline=''), "w") as f:
+    with open(os.path.join(output_path, "answers.csv"), "w", newline='') as f:
         writer = csv.DictWriter(f, fieldnames=["seed", "n_samples", "query_class", "distractor_class", "query_test", "query_train", "distractor_test", "distractor_train", "test_choices"])
         writer.writerow({
             "seed": seed,

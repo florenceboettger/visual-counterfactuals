@@ -220,7 +220,7 @@ def visualize_edit(
     query_ax = fig.add_subplot(121)
     query_ax.set_title("Query Image (Class Alpha)")
     distractor_ax = fig.add_subplot(122)
-    distractor_ax.set_title("Distractor Image (Class Bravo)")
+    distractor_ax.set_title("Distractor Image (Class Beta)")
     # fig, axs = plt.subplots(1, 2)
 
     images = [

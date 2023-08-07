@@ -85,10 +85,24 @@ def main():
     print(f"distractor_indices (new): {distractor_indices}")
     print(f"distractor_test: {distractor_test}")
 
-    # 0: query (alpha), 1: distractor (bravo)
+    # 0: query (alpha), 1: distractor (beta)
     test_choices = np.random.randint(2, size=10)
     print(f"test_choices: {test_choices}")
     # TODO: save all this somewhere
+
+    with open(os.path.join(output_path, "answers.csv", newline=''), "w") as f:
+        writer = csv.DictWriter(f, fieldnames=["seed", "n_samples", "query_class", "distractor_class", "query_test", "query_train", "distractor_test", "distractor_train", "test_choices"])
+        writer.writerow({
+            "seed": seed,
+            "n_samples": n_samples,
+            "query_class": query_class,
+            "distractor_class": distractor_class,
+            "query_test": query_test,
+            "query_train": query_train,
+            "distractor_test": distractor_test,
+            "distractor_train": distractor_train,
+            "test_choices": test_choices
+        })
 
     # generate the ten testing images
     for i in range(n_samples):

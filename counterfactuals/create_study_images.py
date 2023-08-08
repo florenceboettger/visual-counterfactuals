@@ -69,12 +69,12 @@ def main():
     # select ten query indices to be potentially selected for testing and ten query indices to be part of training
     (query_test, query_train) = np.random.choice(query_indices, (2, n_samples), replace=False)
 
-    distractor_train = []
+    distractor_train = np.empty()
     for i in query_train:
         edits = counterfactuals[i]["edits"]
         cell_index_distractor = edits[0][1]
         distractor_indices = counterfactuals[i]["distractor_index"]
-        distractor_train.append(int(distractor_indices[cell_index_distractor // (n_pix**2)]))
+        np.append(distractor_train, int(distractor_indices[cell_index_distractor // (n_pix**2)]))
 
     print(f"distractor_train: {distractor_train}")
 

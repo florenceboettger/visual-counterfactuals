@@ -13,12 +13,14 @@ parser = argparse.ArgumentParser(description="Create images for a study on count
 parser.add_argument("--input_path", type=str, required=True)
 parser.add_argument("--seed", type=int, required=False)
 parser.add_argument("--samples", type=int, required=False, default=10)
+parser.add_argument("--chosen_class", type=int, required=False, default=-1)
 
 def main():
     args = parser.parse_args()
 
     dirpath = os.path.join(Path.output_root_dir(), args.input_path)
     n_samples = args.samples
+    chosen_class = args.chosen_class
     seed = args.seed
     if seed is None:
         seed = int(time.time())
@@ -36,7 +38,8 @@ def main():
     with open(dict_path, "r") as f:
         reader = list(csv.DictReader(f))
         for row in reader:
-            relevant_data.append(row)
+            if chosen_class == -1 or int(row["query_class"]) == chosen_class:
+                relevant_data.append(row)
 
     chosen_data = np.random.choice(relevant_data)
     query_class = int(chosen_data["query_class"])

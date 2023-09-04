@@ -76,8 +76,8 @@ def main():
     for i in query_train:
         edits = counterfactuals[i]["edits"]
         cell_index_distractor = edits[0][1]
-        distractor_indices = counterfactuals[i]["distractor_index"]
-        distractor_train.append(int(distractor_indices[cell_index_distractor // (n_pix**2)]))
+        distractor_index = counterfactuals[i]["distractor_index"]
+        distractor_train.append(int(distractor_index[cell_index_distractor // (n_pix**2)]))
 
     distractor_train = np.array(distractor_train)
 

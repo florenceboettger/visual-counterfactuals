@@ -88,9 +88,11 @@ def main():
 
     # don't reuse distractor images for testing that we use in training
     distractor_indices = [i for i in distractor_indices if i not in distractor_train]
+
+    print(f"distractor_indices (new): {distractor_indices}")
+    
     distractor_test = np.random.choice(distractor_indices, n_samples, replace=False)
     
-    print(f"distractor_indices (new): {distractor_indices}")
     print(f"distractor_test: {distractor_test}")
 
     # 0: query (alpha), 1: distractor (beta)

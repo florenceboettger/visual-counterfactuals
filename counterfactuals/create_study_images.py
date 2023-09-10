@@ -73,7 +73,7 @@ def main():
     # select ten query indices to be potentially selected for testing and ten query indices to be part of training
     (query_test, query_train) = np.random.choice(query_indices, (2, n_samples), replace=False)
     print(f"query_test: {query_test}")
-    print(f"distractor_test: {distractor_test}")
+    print(f"query_train: {query_train}")
 
     distractor_train = []
     for i in query_train:

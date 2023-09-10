@@ -61,16 +61,19 @@ def main():
     with open(matches_path, "r") as f:
         reader = list(csv.DictReader(f))
         for row in reader:
-            if (int(row["query_class"]) == query_class):
-                query_indices.append(int(row["query_index"]))
-            if (int(row["query_class"]) == distractor_class):
-                distractor_indices.append(int(row["query_index"]))
-                # note that after we have determined the training image pairs, we later need to remove the distractor indices of those from this list
+            if (row["match"] != "identical"):
+                if (int(row["query_class"]) == query_class):
+                    query_indices.append(int(row["query_index"]))
+                if (int(row["query_class"]) == distractor_class):
+                    distractor_indices.append(int(row["query_index"]))
+                    # note that after we have determined the training image pairs, we later need to remove the distractor indices of those from this list
 
     print(f"query_indices: {query_indices}")
     print(f"distractor_indices: {distractor_indices}")
     # select ten query indices to be potentially selected for testing and ten query indices to be part of training
     (query_test, query_train) = np.random.choice(query_indices, (2, n_samples), replace=False)
+    print(f"query_test: {query_test}")
+    print(f"distractor_test: {distractor_test}")
 
     distractor_train = []
     for i in query_train:

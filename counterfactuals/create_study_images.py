@@ -52,7 +52,13 @@ def main():
     counterfactuals = np.load(
         os.path.join(dirpath, "counterfactuals.npy"), allow_pickle=True
     ).item()
+    
+    # select for each of the test images whether it is query or distractor
+    # 0: query (alpha), 1: distractor (beta)
+    test_choices = np.random.randint(2, size=10)
+    print(f"test_choices: {test_choices}")
 
+    query_indices_filtered = []
     query_indices = []
     distractor_indices = []
 
@@ -61,16 +67,21 @@ def main():
     with open(matches_path, "r") as f:
         reader = list(csv.DictReader(f))
         for row in reader:
-            if (row["match"] != "identical") and (int(row["query_class"]) == query_class):
+            if (row["match"] != "identical"):
                 query_indices.append(int(row["query_index"]))
+                if (int(row["query_class"]) == query_class):
+                    query_indices_filtered.append(int(row["query_index"]))
             if (int(row["query_class"]) == distractor_class):
                 distractor_indices.append(int(row["query_index"]))
                 # note that after we have determined the training image pairs, we later need to remove the distractor indices of those from this list
 
     print(f"query_indices: {query_indices}")
+    print(f"query_indices_filtered: {query_indices_filtered}")
     print(f"distractor_indices: {distractor_indices}")
-    # select ten query indices to be potentially selected for testing and ten query indices to be part of training
-    (query_test, query_train) = np.random.choice(query_indices, (2, n_samples), replace=False)
+    # select ten query indices to be potentially selected for training and ten to be used for testing out of the rest
+    # (query_test, query_train) = np.random.choice(query_indices, (2, n_samples), replace=False)
+    query_train = np.random.choice(query_indices_filtered, n_samples, replace=False)
+    query_test = np.random.choice([i for i in query_indices if i not in query_train], n_samples, replace=False)
     print(f"query_test: {query_test}")
     print(f"query_train: {query_train}")
 
@@ -82,22 +93,34 @@ def main():
         distractor_train.append(int(distractor_index[cell_index_distractor // (n_pix**2)]))
 
     distractor_train = np.array(distractor_train)
-
     print(f"distractor_train: {distractor_train}")
 
-    # don't reuse distractor images for testing that we use in training
-    distractor_indices = [i for i in distractor_indices if i not in distractor_train]
-
-    print(f"distractor_indices (new): {distractor_indices}")
+    # generate ten distractor images first, then remove and replace those that overlap with distractor images used for training
+    # this is to guarantee that the test images have as much overlap as possible between Vandenhende et al.'s approach and ours
 
     distractor_test = np.random.choice(distractor_indices, n_samples, replace=False)
-    
-    print(f"distractor_test: {distractor_test}")
+    print(f"distractor_test (initial): {distractor_test}")
 
-    # 0: query (alpha), 1: distractor (beta)
-    test_choices = np.random.randint(2, size=10)
-    print(f"test_choices: {test_choices}")
-    # TODO: save all this somewhere
+    # list of distractor images not used for training or testing
+    distractor_indices_open = [i for i in distractor_indices if i not in distractor_train and i not in distractor_test]
+    print(f"distractor_indices_open: {distractor_indices_open}")
+
+    n_overlap = len([i for i in distractor_test if i in distractor_train])
+    print(f"n_overlap: {n_overlap}")
+
+    replacement_indices = np.random.choice(distractor_indices_open, n_overlap, replace=False)    
+    print(f"replacement_indices: {replacement_indices}")
+
+    j = 0
+    for i in range(len(distractor_test)):
+        if distractor_test[i] in distractor_train:
+            distractor_test[i] = replacement_indices[j]
+            j += 1
+
+    print(f"distractor_test (after replacement): {distractor_test}")
+
+    # print(f"distractor_indices (new): {distractor_indices}")
+    # distractor_test = np.random.choice(distractor_indices, n_samples, replace=False)
 
     with open(os.path.join(output_path, "answers.csv"), "w", newline='') as f:
         writer = csv.DictWriter(f, fieldnames=["seed", "n_samples", "query_class", "distractor_class", "query_test", "query_train", "distractor_test", "distractor_train", "test_choices"])

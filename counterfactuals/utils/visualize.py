@@ -208,7 +208,7 @@ def visualize_edit(
     distractor_y,
     n_pix,
     fname,
-    blur=False
+    blur=0
 ):    
     height, width = query_img.shape[0], query_img.shape[1]
 
@@ -233,8 +233,8 @@ def visualize_edit(
         d.ax.set_xlim(0, 1)
         d.ax.set_ylim(0, 1)
 
-        if blur:
-            blurred_img = cv.GaussianBlur(d.img, (11, 11), 0)
+        if blur > 0:
+            blurred_img = cv.GaussianBlur(d.img, (blur, blur), 0)
             d.ax.imshow(blurred_img, extent=(0, 1, 0, 1))
 
             crop = [

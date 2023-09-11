@@ -61,12 +61,11 @@ def main():
     with open(matches_path, "r") as f:
         reader = list(csv.DictReader(f))
         for row in reader:
-            if (row["match"] != "identical"):
-                if (int(row["query_class"]) == query_class):
-                    query_indices.append(int(row["query_index"]))
-                if (int(row["query_class"]) == distractor_class):
-                    distractor_indices.append(int(row["query_index"]))
-                    # note that after we have determined the training image pairs, we later need to remove the distractor indices of those from this list
+            if (row["match"] != "identical") and (int(row["query_class"]) == query_class):
+                query_indices.append(int(row["query_index"]))
+            if (int(row["query_class"]) == distractor_class):
+                distractor_indices.append(int(row["query_index"]))
+                # note that after we have determined the training image pairs, we later need to remove the distractor indices of those from this list
 
     print(f"query_indices: {query_indices}")
     print(f"distractor_indices: {distractor_indices}")
@@ -90,7 +89,7 @@ def main():
     distractor_indices = [i for i in distractor_indices if i not in distractor_train]
 
     print(f"distractor_indices (new): {distractor_indices}")
-    
+
     distractor_test = np.random.choice(distractor_indices, n_samples, replace=False)
     
     print(f"distractor_test: {distractor_test}")

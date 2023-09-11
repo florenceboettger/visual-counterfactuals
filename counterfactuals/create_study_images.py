@@ -66,10 +66,10 @@ def main():
     matches_path = os.path.join(Path.output_root_dir(), "new_results/edits/matches.csv")
     with open(matches_path, "r") as f:
         reader = list(csv.DictReader(f))
-        for row in reader:
-            if (row["match"] != "identical"):
+        for row in reader:            
+            if (int(row["query_class"]) == query_class):
                 query_indices.append(int(row["query_index"]))
-                if (int(row["query_class"]) == query_class):
+                if (row["match"] != "identical"):
                     query_indices_filtered.append(int(row["query_index"]))
             if (int(row["query_class"]) == distractor_class):
                 distractor_indices.append(int(row["query_index"]))

@@ -124,10 +124,7 @@ def main():
     # print(f"distractor_indices (new): {distractor_indices}")
     # distractor_test = np.random.choice(distractor_indices, n_samples, replace=False)
 
-    with open(os.path.join(output_path, "answers.csv"), "w", newline='') as f:
-        writer = csv.DictWriter(f, fieldnames=["seed", "n_samples", "query_class", "distractor_class", "query_test", "query_train", "distractor_test", "distractor_train", "test_choices"])
-        writer.writeheader()
-        writer.writerow({
+    answers = {
             "seed": seed,
             "n_samples": n_samples,
             "query_class": query_class,
@@ -135,9 +132,16 @@ def main():
             "query_test": query_test,
             "query_train": query_train,
             "distractor_test": distractor_test,
-            "distractor_train": distractor_train,
-            "test_choices": test_choices
-        })
+            "distractor_train": distractor_train
+        }
+    
+    for i in range(n_samples):
+        answers[f"test_choice_{i}"] = "Alpha" if test_choices[i] == 0 else "Beta"
+
+    with open(os.path.join(output_path, "answers.csv"), "w", newline='') as f:
+        writer = csv.DictWriter(f, fieldnames=answers.keys())
+        writer.writeheader()
+        writer.writerow(answers)
 
     # generate the ten testing images
     for i in range(n_samples):

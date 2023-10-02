@@ -36,6 +36,7 @@ def compute_counterfactual(
             (N x dim_aux x n_pix x n_pix)
         lambd: lambda loss balancing weight
         lambd2: secondary lambda loss balancing weight
+        temperature: temperature for semantic consistency loss calculations
         topk: only use top-k most similar cells
         query_parts: query semantic classes (n_pix x n_pix x n_classes)
         distractor_parts: distractor semantic classes (N x n_pix x n_pix x n_classes)

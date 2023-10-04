@@ -1,0 +1,2 @@
+seed,n_samples,query_class,distractor_class,query_test,query_train,distractor_test,distractor_train,test_choice_0,test_choice_1,test_choice_2,test_choice_3,test_choice_4,test_choice_5,test_choice_6,test_choice_7,test_choice_8,test_choice_9
+433137,10,123,125,[3534 3543 3531 3547 3536 3537 3528 3544 3521 3526],[3525 3539 3546 3540 3520 3529 3533 3532 3548 3542],[3585 3598 3581 3578 3590 3584 3594 3579 3596 3586],[3583 3607 3583 3599 3583 3602 3583 3589 3589 3580],Beta,Alpha,Beta,Alpha,Alpha,Beta,Beta,Alpha,Beta,Alpha

@@ -10,9 +10,9 @@ intro_truth = [
 
 answer_map = {
     "Alpha (Certain)": 1,
-    "Alpha (Uncertain)": 0.5,
+    "Alpha (Uncertain)": 1/3,
     "Don't Know": 0,
-    "Beta (Uncertain)": -0.5,
+    "Beta (Uncertain)": -1/3,
     "Beta (Certain)": -1
 }
 
@@ -38,7 +38,8 @@ def analyze_response(response):
         "intro_responses": intro_responses,
         "initial_responses": initial_responses,
         "main_responses": main_responses,
-        "main_explanations": main_explanations
+        "main_explanations": main_explanations,
+        "mental_model": response["mental_model"]
     }
 
 
@@ -71,4 +72,4 @@ def load_studies():
         for response in study_responses:
             response_infos.append(analyze_response(response))
 
-        visualize_main_results(response_infos, main_truth)
+        visualize_main_results(response_infos, main_truth, study_name)

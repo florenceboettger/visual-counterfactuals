@@ -2,7 +2,47 @@ from pathlib import Path
 import csv
 import numpy as np
 
+class Response:
+    intro_responses: list[bool]
+    initial_testing: list[float]
+    main_testing: list[float]
+    main_explanations: list[str]
+    mental_model: str
+    familiarity: int
+    truth: list[float]
+
+    def __init__(self, raw_response, truth):
+        intro_responses = []
+        for i in range(len(Study.intro_truth)):
+            intro_responses.append(Study.intro_truth[i] == raw_response[f"initial_{i}"])
+
+        initial_testing = []
+        main_testing = []
+        main_explanations = []
+        for i in range(10):
+            initial_testing.append(Study.answer_map[raw_response[f"testing_initial_{i}"]])
+            main_testing.append(Study.answer_map[raw_response[f"testing_later_{i}"]])
+            main_explanations.append(raw_response[f"testing_explanation_{i}"])
+
+        self.intro_responses = intro_responses
+        self.initial_testing = initial_testing
+        self.main_testing = main_testing
+        self.main_explanations = main_explanations
+        self.mental_model = raw_response["mental_model"]
+        self.familiarity = int(raw_response["bird_familiarity"])
+        self.truth = truth
+
+    def has_valid_initial_test(self):
+        return all(i == 0 for i in self.initial_testing)
+    
+    def average_accuracy(self):
+        return np.count_nonzero(np.array([r * t for r, t in zip(self.main_testing, self.truth)]) > 0) / len(self.main_testing)
+
 class Study():
+    responses: list[Response]
+    truth: list[float]
+    name: str
+
     intro_truth = [
         "Ruby-throated Hummingbird",
         "Ivory Gull",
@@ -45,8 +85,9 @@ class Study():
         for i in range(10):
             truth.append(Study.truth_map[correct_answers[f"test_choice_{i}"]])
 
-        for response in raw_responses:
-            responses.append(Study._filter_response(response))
+        for raw_response in raw_responses:
+            # responses.append(Study._filter_response(raw_response))
+            responses.append(Response(raw_response, truth))
 
         return Study(truth, name, responses)
 
@@ -61,45 +102,18 @@ class Study():
     
     def create_valid_responses(self, name=None):
         name = name or f"{self.name} (Valid Intro)"
-        return Study(self.truth, name, [r for r in self.responses if Study.has_valid_intro(r)])
-
+        # return Study(self.truth, name, [r for r in self.responses if Study.has_valid_initial_test(r)])
+        return Study(self.truth, name, [r for r in self.responses if r.has_valid_initial_test()])
+    
     def evaluate(self):
         self._evaluate_accuracy()
 
     def _evaluate_accuracy(self):
         accuracies = []
         for i, response in enumerate(self.responses):
-            accuracy = np.count_nonzero(np.array([r * t for r, t in zip(response["main_responses"], self.truth)]) > 0) / len(response["main_responses"])
+            accuracy = response.average_accuracy()
             print(f"Response {i} of study {self.name} has an accuracy of {accuracy}")
             
             accuracies.append(accuracy)
         
         print(f"Average accuracy for study {self.name} is {np.average(accuracies)}")
-        return
-    
-
-    @staticmethod
-    def _filter_response(response):
-        intro_responses = []
-        for i in range(len(Study.intro_truth)):
-            intro_responses.append(Study.intro_truth[i] == response[f"initial_{i}"])
-
-        initial_responses = []
-        main_responses = []
-        main_explanations = []
-        for i in range(10):
-            initial_responses.append(Study.answer_map[response[f"testing_initial_{i}"]])
-            main_responses.append(Study.answer_map[response[f"testing_later_{i}"]])
-            main_explanations.append(response[f"testing_explanation_{i}"])
-
-        return {
-            "intro_responses": intro_responses,
-            "initial_responses": initial_responses,
-            "main_responses": main_responses,
-            "main_explanations": main_explanations,
-            "mental_model": response["mental_model"]
-        }
-    
-    @staticmethod
-    def has_valid_intro(response):
-        return all(i == 0 for i in response["initial_responses"])

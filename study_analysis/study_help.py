@@ -1,6 +1,8 @@
 from study import Study
 
-def load_studies(path):
+from pathlib import Path
+
+def load_studies(path: Path) -> list[Study]:
     study_dirs = [str(path / f) for f in path.iterdir() if (path / f).is_dir()]
 
     studies = []

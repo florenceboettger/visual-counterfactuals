@@ -62,6 +62,7 @@ def evaluate_results_pearson(results):
 
 def evaluate_results_average(results):
     relevant_attributes = [
+        "avg_edits",
         "eval_single_near",
         "eval_single_same",
         "eval_all_near",
@@ -74,6 +75,7 @@ def evaluate_results_average(results):
 
 def evaluate_results_median(results):
     relevant_attributes = [
+        "avg_edits",
         "eval_single_near",
         "eval_single_same",
         "eval_all_near",

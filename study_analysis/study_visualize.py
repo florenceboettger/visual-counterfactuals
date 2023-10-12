@@ -35,17 +35,19 @@ def visualize_main_results(study: Study, show_individual: bool):
         for i, r in enumerate(study.responses):
             # visualize_responses(study.create_individual_response(i, f"{study.name}_{i} ({'Valid' if Study.has_valid_initial_test(r) else 'Not Valid'})"))
             visualize_responses(study.create_individual_response(i, f"{study.name}_{i} ({'Valid' if r.has_valid_initial_test else 'Not Valid'})"))
-            for j, e in enumerate(r.main_testing):
+            for j, e in enumerate(r.main_explanations):
                 print(f"{j}: {e}")
-            print(r["mental_model"])
+            print(r.mental_model)
 
 def visualize_familiarity(study: Study):
     x = [r.familiarity for r in study.responses]
     y = [r.average_accuracy() for r in study.responses]
 
+    sizes = np.array([np.count_nonzero([k == i and l == j for k, l in zip(x, y)]) for i, j in zip(x, y)]) * 25
+
     fig, ax = plt.subplots()
 
-    ax.scatter(x, y)
+    ax.scatter(x, y, sizes=sizes)
     plt.suptitle(f"{study.name} (Familiarity)")
 
     plt.xticks(np.arange(1, 6))
@@ -67,8 +69,6 @@ def visualize_familiarity_correlation(studies: list[Study]):
         for r in s.responses:
             num_responses += 1
             for i, b in enumerate(r.intro_responses):
-                """if i == 2:
-                    print(b)"""
                 sizes[i, (r.familiarity - 1) + 5 * int(b)] += 1
 
     sizes *= 70 / num_responses
@@ -85,7 +85,3 @@ def visualize_familiarity_correlation(studies: list[Study]):
         ax.set_yticklabels(['Incorrect', 'Correct'])
 
         ax.scatter(x, y, sizes=sizes[i])
-
-
-
-    print(sizes)

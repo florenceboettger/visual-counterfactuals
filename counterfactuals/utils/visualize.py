@@ -268,45 +268,6 @@ def visualize_edit(
         plt.savefig(fname, bbox_inches="tight", dpi=300)
     plt.close()
 
-    """ax = plt.axes([0, 0, 1, 1], frameon=False)
-    ax.set_axis_off()
-    ax.set_xlim(0, 1)
-    ax.set_ylim(0, 1)
-
-    if blur:
-        blurred_img = cv.GaussianBlur(img, (11, 11), 0)
-        plt.imshow(blurred_img, extent=(0, 1, 0, 1))
-
-        crop = [
-            y_coord * height_cell,
-            (y_coord + 1) * height_cell,
-            x_coord * width_cell,
-            (x_coord + 1) * width_cell
-        ]
-
-        img_cropped = img[crop[0]:crop[1], crop[2]:crop[3]]
-        extent = (x_coord / n_pix, (x_coord + 1) / n_pix, (n_pix - y_coord - 1) / n_pix, (n_pix - y_coord) / n_pix)
-
-        plt.imshow(img_cropped, extent=extent)
-    else:
-        plt.imshow(img, extent=(0, 1, 0, 1))
-
-    rect = patches.Rectangle(
-            (x_coord / n_pix, 1 - (y_coord + 1) / n_pix),
-            1 / n_pix,
-            1 / n_pix,
-            linewidth=5,
-            edgecolor="k",
-            facecolor="none",
-        )
-    ax.add_patch(rect)
-    plt.tight_layout()
-    if fname is None:
-        plt.show()
-    else:
-        plt.savefig(fname, bbox_inches="tight", dpi=300)
-    plt.close()"""
-
 def visualize_edits(
     edits,
     query_index,

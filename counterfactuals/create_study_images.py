@@ -16,6 +16,7 @@ parser.add_argument("--samples", type=int, required=False, default=10)
 parser.add_argument("--chosen_class", type=int, required=False, default=-1)
 parser.add_argument("--blur", type=int, required=False, default=0)
 parser.add_argument("--no_titles", action="store_true")
+parser.add_argument("--pdf", action="store_true")
 
 def main():
     args = parser.parse_args()
@@ -33,7 +34,7 @@ def main():
 
     print(f"chosen seed: {seed}")
 
-    output_path = os.path.join(Path.output_root_dir(), "study", str(seed), args.input_path)
+    output_path = os.path.join(Path.output_root_dir(), "study", str(seed), args.input_path + ("_pdf" if args.pdf else ""))
     os.makedirs(output_path, exist_ok=True)
 
     relevant_data = []
@@ -173,11 +174,11 @@ def main():
         row_index_distractor = cell_index_distractor // n_pix
         col_index_distractor = cell_index_distractor % n_pix
         
-        img_path = os.path.join(output_path, f"train_{i}.png")
+        img_path = os.path.join(output_path, f"train_{i}." + ("pdf" if args.pdf else "png"))
         
         visualize_edit(query_img, col_index_query, row_index_query,
                        distractor_img, col_index_distractor, row_index_distractor,
-                       n_pix, img_path, blur=blur, use_title=not args.no_titles)
+                       n_pix, img_path, blur=blur, use_title=not args.no_titles, pdf=args.pdf)
 
 if __name__ == "__main__":
     main()

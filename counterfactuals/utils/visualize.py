@@ -210,6 +210,7 @@ def visualize_edit(
     fname,
     blur=0,
     use_title=True,
+    pdf=False
 ):    
     height, width = query_img.shape[0], query_img.shape[1]
 

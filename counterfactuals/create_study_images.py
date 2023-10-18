@@ -15,6 +15,7 @@ parser.add_argument("--seed", type=int, required=False)
 parser.add_argument("--samples", type=int, required=False, default=10)
 parser.add_argument("--chosen_class", type=int, required=False, default=-1)
 parser.add_argument("--blur", type=int, required=False, default=0)
+parser.add_argument("--no_titles", action="store_true")
 
 def main():
     args = parser.parse_args()
@@ -176,7 +177,7 @@ def main():
         
         visualize_edit(query_img, col_index_query, row_index_query,
                        distractor_img, col_index_distractor, row_index_distractor,
-                       n_pix, img_path, blur=blur)
+                       n_pix, img_path, blur=blur, use_title=not args.no_titles)
 
 if __name__ == "__main__":
     main()

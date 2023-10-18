@@ -208,7 +208,8 @@ def visualize_edit(
     distractor_y,
     n_pix,
     fname,
-    blur=0
+    blur=0,
+    use_title=True,
 ):    
     height, width = query_img.shape[0], query_img.shape[1]
 
@@ -218,10 +219,10 @@ def visualize_edit(
 
     fig = plt.figure(figsize=(10, 20))
     query_ax = fig.add_subplot(121)
-    query_ax.set_title("Query Image (Class Alpha)")
     distractor_ax = fig.add_subplot(122)
-    distractor_ax.set_title("Distractor Image (Class Beta)")
-    # fig, axs = plt.subplots(1, 2)
+    if use_title:
+        query_ax.set_title("Query Image (Class Alpha)")
+        distractor_ax.set_title("Distractor Image (Class Beta)")
 
     images = [
         ImageData(query_img, query_x, query_y, query_ax),

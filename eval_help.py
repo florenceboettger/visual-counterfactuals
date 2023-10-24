@@ -150,9 +150,56 @@ def performance_edits_correlation(results):
     print(f"Spearman correlation is {spearman}")
     print(f"Spearman pvalue is {spearman_pvalue}")
 
+num_iterations = 4411
+
 def average_time_per_edit(results):
-    runtimes = [float(r["time"]) for r in results]
-    avg_edits = [float(r["avg_edits"]) for r in results]
-    num_iterations = 4411
-    average_time = np.average(runtimes) / (np.average(avg_edits) * num_iterations)
-    print(f"Average time per edit is {average_time} seconds.")
+    time_per_edit = [float(r["time"]) / (float(r["avg_edits"]) * num_iterations) for r in results]
+    average_time = np.average(time_per_edit)
+    var_time = np.var(time_per_edit)
+    print(f"Average time per edit is {average_time} seconds, variance is {var_time}.")
+
+def plot_runtime(results, name):
+    x = range(len(results))
+    y = [float(r["time"]) for r in results]
+    plt.plot(x, y)
+
+    fit = np.polyfit(x, y, 1)
+    p = np.poly1d(fit)
+
+    plt.plot(x, p(x), color="red", linestyle="--", linewidth=2)
+
+    plt.xlabel('Iteration')
+    plt.ylabel('Runtime in seconds')
+    
+    plt.savefig(f"plots/{name}.png", dpi=500, bbox_inches='tight', pad_inches=0)
+    plt.savefig(f"plots/{name}.pdf", dpi=500, bbox_inches='tight', pad_inches=0)
+    plt.show()
+
+def plot_runtime_per_edit(results, name):
+    x = range(len(results))
+    y = [float(r["time"]) / (float(r["avg_edits"]) * num_iterations) for r in results]
+    plt.plot(x, y)
+
+    fit = np.polyfit(x, y, 1)
+    p = np.poly1d(fit)
+    plt.plot(x, p(x), color="red", linestyle="--", linewidth=2)
+
+    plt.xlabel('Iteration')
+    plt.ylabel('Runtime per edit in seconds')
+    
+    plt.savefig(f"plots/{name}.png", dpi=500, bbox_inches='tight', pad_inches=0)
+    plt.savefig(f"plots/{name}.pdf", dpi=500, bbox_inches='tight', pad_inches=0)
+    plt.show()
+
+def plot_runtime_edits(results, name):
+    x = [float(r["avg_edits"]) for r in results]
+    y = [float(r["time"]) for r in results]
+
+    plt.scatter(x, y, linewidths=1.0, edgecolors='#000000')
+
+    plt.xlabel('Edits')
+    plt.ylabel('Runtime in seconds')
+    
+    plt.savefig(f"plots/{name}.png", dpi=500, bbox_inches='tight', pad_inches=0)
+    plt.savefig(f"plots/{name}.pdf", dpi=500, bbox_inches='tight', pad_inches=0)
+    plt.show()

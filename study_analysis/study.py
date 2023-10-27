@@ -1,6 +1,13 @@
 from pathlib import Path
 import csv
 import numpy as np
+from enum import Enum
+    
+class Referral(Enum):
+    UNIVERSITY = "University E-mail"
+    BIOLOGY = "Biology E-mail"
+    BIRD_FORUMS = "Bird Forums"
+    OTHER = "Other"
 
 class Response:
     intro_responses: list[bool]
@@ -9,39 +16,15 @@ class Response:
     main_explanations: list[str]
     mental_model: str
     familiarity: int
+    referral_text: str
+    referral_type: Referral
     truth: list[float]
 
-    def __init__(self, raw_response, truth):
-        intro_responses = []
-        for i in range(len(Study.intro_truth)):
-            intro_responses.append(Study.intro_truth[i] == raw_response[f"initial_{i}"])
-
-        initial_testing = []
-        main_testing = []
-        main_explanations = []
-        for i in range(10):
-            initial_testing.append(Study.answer_map[raw_response[f"testing_initial_{i}"]])
-            main_testing.append(Study.answer_map[raw_response[f"testing_later_{i}"]])
-            main_explanations.append(raw_response[f"testing_explanation_{i}"])
-
-        self.intro_responses = intro_responses
-        self.initial_testing = initial_testing
-        self.main_testing = main_testing
-        self.main_explanations = main_explanations
-        self.mental_model = raw_response["mental_model"]
-        self.familiarity = int(raw_response["bird_familiarity"])
-        self.truth = truth
-
-    def has_valid_initial_test(self):
-        return all(i == 0 for i in self.initial_testing)
-    
-    def average_accuracy(self):
-        return np.count_nonzero(np.array([r * t for r, t in zip(self.main_testing, self.truth)]) > 0) / len(self.main_testing)
-
-class Study():
-    responses: list[Response]
-    truth: list[float]
-    name: str
+    referral_calculation = {
+        Referral.UNIVERSITY: lambda s: s == "HPI Infoschleuder",
+        Referral.BIOLOGY: lambda s: s == "Uni Potsdam FSR",
+        Referral.BIRD_FORUMS: lambda s: s in ["/r/whatsthisbird", "Reddit birding", "Reddit - Ornithology", "Reddit - General", "Reddit - What’s this bird"]
+}
 
     intro_truth = [
         "Ruby-throated Hummingbird",
@@ -56,6 +39,43 @@ class Study():
         "Beta (Uncertain)": -1/3,
         "Beta (Certain)": -1
     }
+
+    def __init__(self, raw_response, truth):
+        intro_responses = []
+        for i in range(len(Response.intro_truth)):
+            intro_responses.append(Response.intro_truth[i] == raw_response[f"initial_{i}"])
+
+        initial_testing = []
+        main_testing = []
+        main_explanations = []
+        for i in range(10):
+            initial_testing.append(Response.answer_map[raw_response[f"testing_initial_{i}"]])
+            main_testing.append(Response.answer_map[raw_response[f"testing_later_{i}"]])
+            main_explanations.append(raw_response[f"testing_explanation_{i}"])
+
+        self.intro_responses = intro_responses
+        self.initial_testing = initial_testing
+        self.main_testing = main_testing
+        self.main_explanations = main_explanations
+        self.mental_model = raw_response["mental_model"]
+        self.familiarity = int(raw_response["bird_familiarity"])
+        self.referral_text = raw_response["referral"]
+        self.referral_type = Referral.OTHER
+        for type, c in Response.referral_calculation.items():
+            if c(self.referral_text): 
+                self.referral_type = type
+        self.truth = truth
+
+    def has_valid_initial_test(self):
+        return all(i == 0 for i in self.initial_testing)
+    
+    def average_accuracy(self):
+        return np.count_nonzero(np.array([r * t for r, t in zip(self.main_testing, self.truth)]) > 0) / len(self.main_testing)
+
+class Study():
+    responses: list[Response]
+    truth: list[float]
+    name: str
 
     truth_map = {
         "Alpha": 1,
@@ -86,7 +106,6 @@ class Study():
             truth.append(Study.truth_map[correct_answers[f"test_choice_{i}"]])
 
         for raw_response in raw_responses:
-            # responses.append(Study._filter_response(raw_response))
             responses.append(Response(raw_response, truth))
 
         return Study(truth, name, responses)
@@ -102,7 +121,6 @@ class Study():
     
     def create_valid_responses(self, name=None):
         name = name or f"{self.name} (Valid Intro)"
-        # return Study(self.truth, name, [r for r in self.responses if Study.has_valid_initial_test(r)])
         return Study(self.truth, name, [r for r in self.responses if r.has_valid_initial_test()])
     
     def evaluate(self):

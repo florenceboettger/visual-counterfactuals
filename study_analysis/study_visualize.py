@@ -3,7 +3,7 @@ from matplotlib.patches import Rectangle
 from matplotlib.collections import PatchCollection
 import numpy as np
 
-from study import Study
+from study import Study, Response, Referral
 
 def visualize_responses(study: Study):
     x = np.arange(40) // 4
@@ -33,7 +33,6 @@ def visualize_main_results(study: Study, show_individual: bool):
 
     if show_individual:
         for i, r in enumerate(study.responses):
-            # visualize_responses(study.create_individual_response(i, f"{study.name}_{i} ({'Valid' if Study.has_valid_initial_test(r) else 'Not Valid'})"))
             visualize_responses(study.create_individual_response(i, f"{study.name}_{i} ({'Valid' if r.has_valid_initial_test else 'Not Valid'})"))
             for j, e in enumerate(r.main_explanations):
                 print(f"{j}: {e}")
@@ -85,3 +84,41 @@ def visualize_familiarity_correlation(studies: list[Study]):
         ax.set_yticklabels(['Incorrect', 'Correct'])
 
         ax.scatter(x, y, sizes=sizes[i])
+
+def visualize_familiarity_count(studies: list[Study]):
+    responses: list[Response] = []
+    for s in studies:
+        print(f"Study {s.name} received {len(s.responses)} responses.")
+        responses += s.responses
+
+    print(f"Total responses received: {len(responses)}")
+    
+    heights = {}
+
+    x = range(1, 6)
+
+    types = [t.value for t in Referral]
+
+    for t in Referral:
+        heights[t.value] = np.empty(0)
+        for f in x:
+            heights[t.value] = np.append(heights[t.value], np.count_nonzero([r.familiarity == f and r.referral_type == t for r in responses]))
+
+    print(heights)
+
+    colors = ["#e41a1c", "#984ea3", "#377eb8", "#4daf4a"]
+
+    for i in range(4):
+        bottom = np.zeros(5)
+        for j in range(i):
+            bottom += heights[types[j]]
+        plt.bar(x, heights[types[i]], color=colors[i], bottom=bottom, edgecolor='#000000')
+    
+
+    plt.legend(labels=types)
+
+    plt.xlabel("Familiarity")
+    plt.ylabel("# Responses")
+    
+    plt.savefig(f"../plots/user_study/familiarity_count.png", dpi=500, bbox_inches='tight', pad_inches=0)
+    plt.savefig(f"../plots/user_study/familiarity_count.pdf", dpi=500, bbox_inches='tight', pad_inches=0)

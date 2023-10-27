@@ -34,7 +34,7 @@ def main():
 
     print(f"chosen seed: {seed}")
 
-    output_path = os.path.join(Path.output_root_dir(), "study", str(seed), args.input_path + ("_pdf" if args.pdf else ""))
+    output_path = os.path.join(Path.output_root_dir(), "study", str(seed), args.input_path + ("_pdf" if args.pdf else "") + ("_no_titles" if args.no_titles else ""))
     os.makedirs(output_path, exist_ok=True)
 
     relevant_data = []

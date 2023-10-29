@@ -1,26 +1,39 @@
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 from matplotlib.collections import PatchCollection
+from matplotlib.colors import Normalize
 import numpy as np
+import re
 
 from study import Study, Response, Referral
 
 def visualize_responses(study: Study):
-    x = np.arange(40) // 4
+    x = (np.arange(40) // 4)
     y = np.tile(np.array([-1, -1/3, 1/3, 1]), 10)
     
     sizes = np.array([np.count_nonzero([r.main_testing[x[i]] for r in study.responses] == y[i]) for i in range(len(x))]) / len(study.responses) * 70
+    colors = np.array([np.count_nonzero([r.main_testing[x[i]] for r in study.responses] == y[i]) for i in range(len(x))])
+
+    x = x + 1
 
     fig, ax = plt.subplots()
 
-    plt.suptitle(f"{study.name} (Accuracy)")
+    # ax.set_box_aspect(1)
 
-    truth_backgrounds = [Rectangle([i - 0.5, t * 0.5 - 0.5], 1, 1) for i, t in enumerate(study.truth)]
+    print(f"{study.name} (Accuracy)")
+
+    truth_backgrounds = [Rectangle([i + 0.5, t * 0.5 - 0.5], 1, 1) for i, t in enumerate(study.truth)]
     ax.add_collection(PatchCollection(truth_backgrounds, color="lightgrey", zorder=-1, linewidth=0))
 
-    ax.scatter(x, y, s=sizes)
-    plt.xticks(np.arange(10))
+    ax.scatter(x, y, s=sizes, edgecolors="black")
+    # ax.scatter(x, y, edgecolors="black", c=colors, cmap='Blues', norm=Normalize(0.0, max(colors)))
+    plt.xticks(np.arange(1, 11))
     plt.yticks([-1, -1/3, 1/3, 1], labels=['Beta (Certain)', 'Beta (Uncertain)', 'Alpha (Uncertain)', 'Alpha (Certain)'])
+    plt.xlabel("Question")
+    # plt.ylabel("Answer")
+    
+    plt.savefig(f"../plots/user_study/accuracy_{study.name}.png", dpi=500, bbox_inches='tight', pad_inches=0)
+    plt.savefig(f"../plots/user_study/accuracy_{study.name}.pdf", dpi=500, bbox_inches='tight', pad_inches=0)
 
     plt.show()
 
@@ -122,3 +135,14 @@ def visualize_familiarity_count(studies: list[Study]):
     
     plt.savefig(f"../plots/user_study/familiarity_count.png", dpi=500, bbox_inches='tight', pad_inches=0)
     plt.savefig(f"../plots/user_study/familiarity_count.pdf", dpi=500, bbox_inches='tight', pad_inches=0)
+
+def count_answers(study: Study, query: str = "\S"):
+    count = 0
+    for r in study.responses:
+        for e in r.main_explanations:
+            if re.search(query, e, flags=re.IGNORECASE):
+                count += 1
+                break
+            # print(f"string {e} did not match.")
+
+    print(f"Study {study.name} has {count} matches for query {query}.")

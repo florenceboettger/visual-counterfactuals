@@ -71,6 +71,13 @@ class Response:
     
     def average_accuracy(self):
         return np.count_nonzero(np.array([r * t for r, t in zip(self.main_testing, self.truth)]) > 0) / len(self.main_testing)
+    
+    def print_explanations(self):
+        for i, s in enumerate(self.main_explanations):
+            if s != "":
+                print(f"Question {i + 1}: {s}")
+
+        print(f"Mental Model: {self.mental_model}")
 
 class Study():
     responses: list[Response]
@@ -130,8 +137,14 @@ class Study():
         accuracies = []
         for i, response in enumerate(self.responses):
             accuracy = response.average_accuracy()
-            print(f"Response {i} of study {self.name} has an accuracy of {accuracy}")
+            # print(f"Response {i} of study {self.name} has an accuracy of {accuracy}")
             
             accuracies.append(accuracy)
         
         print(f"Average accuracy for study {self.name} is {np.average(accuracies)}")
+
+    def print_explanations(self):
+        print(f"Study {self.name}")
+        for i, r in enumerate(self.responses):
+            print(f"Response #{i + 1}")
+            r.print_explanations()

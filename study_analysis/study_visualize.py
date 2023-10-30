@@ -110,22 +110,23 @@ def visualize_familiarity_count(studies: list[Study]):
 
     x = range(1, 6)
 
-    types = [t.value for t in Referral]
+    types = [t.value for t in Referral if t != Referral.BIOLOGY]
 
     for t in Referral:
-        heights[t.value] = np.empty(0)
-        for f in x:
-            heights[t.value] = np.append(heights[t.value], np.count_nonzero([r.familiarity == f and r.referral_type == t for r in responses]))
+        if t != Referral.BIOLOGY:
+            heights[t.value] = np.empty(0)
+            for f in x:
+                heights[t.value] = np.append(heights[t.value], np.count_nonzero([r.familiarity == f and r.referral_type == t for r in responses]))
 
     print(heights)
 
-    colors = ["#e41a1c", "#984ea3", "#377eb8", "#4daf4a"]
+    colors = ["#e41a1c", "#377eb8", "#4daf4a"]
 
-    for i in range(4):
+    for i in range(len(types)):
         bottom = np.zeros(5)
         for j in range(i):
             bottom += heights[types[j]]
-        plt.bar(x, heights[types[i]], color=colors[i], bottom=bottom, edgecolor='#000000')
+        plt.bar(x, heights[types[i]], color=colors[i], bottom=bottom, edgecolor="black")
     
 
     plt.legend(labels=types)
@@ -143,6 +144,103 @@ def count_answers(study: Study, query: str = "\S"):
             if re.search(query, e, flags=re.IGNORECASE):
                 count += 1
                 break
-            # print(f"string {e} did not match.")
 
     print(f"Study {study.name} has {count} matches for query {query}.")
+
+def visualize_accuracy(study: Study, max_count, legend: str):
+    colors = ["#4dac26", "#b8e186", "#f1b6da", "#d01c8b"]
+
+    x = range(1, 11)
+    heights = []
+
+    for v in [1, 1/3, -1/3, -1]:
+        heights.append([np.count_nonzero([r.main_testing[i] * r.truth[i] == v for r in study.responses]) for i in range(10)])
+
+    for i, height in enumerate(heights):
+        bottom = np.zeros(10)
+        for j in range(i):
+            bottom += heights[j]
+        plt.bar(x, height, color=colors[i], bottom=bottom, edgecolor="black", width=0.75)
+
+    if legend:
+        plt.legend(labels=["Correct (Certain)", "Correct (Uncertain)", "Incorrect (Uncertain)", "Incorrect (Certain)"], loc=legend, fontsize="large")
+
+    plt.xlabel("Question", fontsize="large")
+    plt.xticks(x)
+    plt.ylabel("Responses", fontsize="large")
+    plt.yticks(range(0, len(study.responses) + 1))
+
+    plt.ylim(0, max_count + 0.5)
+
+    plt.savefig(f"../plots/user_study/accuracy_bar_{study.name}.png", dpi=500, bbox_inches='tight', pad_inches=0)
+    plt.savefig(f"../plots/user_study/accuracy_bar_{study.name}.pdf", dpi=500, bbox_inches='tight', pad_inches=0)
+
+    plt.show()
+
+class WordCount():
+    word: str
+    count: str
+
+    def __init__(self, word, count):
+        self.word = word
+        self.count = count
+
+def compare(str1: str, str2: str):
+    if (str.lower(str1) == str.lower(str2)):
+        return 1
+    if re.search(str1, str2, flags=re.IGNORECASE):
+        return 1
+    if re.search(str2, str1, flags=re.IGNORECASE):
+        return 2
+    return 0
+
+def compare_answers(responses: list[Response]):
+    words: list[WordCount] = []
+    for r in responses:
+        answer_words: list[str] = []
+        for answer in r.main_explanations:
+            modified_answer = re.sub("colour", "color", answer, flags=re.IGNORECASE)
+            modified_answer = re.sub("grey", "gray", modified_answer, flags=re.IGNORECASE)
+            modified_answer = re.sub("schnabel", "bill", modified_answer, flags=re.IGNORECASE)
+            answer_words += re.findall(r"\b\w{3,}\b", modified_answer, flags=re.IGNORECASE)
+
+        answer_words = [str.lower(w) for w in answer_words if str.lower(w) not in ["the", "and"]]
+
+        remove = set([])
+
+        for w in answer_words:
+            for v in answer_words:
+                if re.search(w, v, flags=re.IGNORECASE) and w != v:
+                    remove.add(v)#
+
+        answer_words = set(answer_words)
+
+        for w in remove:
+            answer_words.remove(w)#
+
+        remove = []
+            
+        for wc in words:
+            for i, v in enumerate(answer_words):
+                comp = compare(wc.word, v)
+                if comp == 1:
+                    wc.count += 1
+                    remove.append(i)
+                if comp == 2:
+                    wc.count += 1
+                    wc.word = str.lower(v)
+                    remove.append(i)
+
+        # print([f"{wc.word}, {wc.count}" for wc in words])
+
+        for i, v in enumerate(answer_words):
+            if not i in remove:
+                words.append(WordCount(str.lower(v), 1))
+
+        # print([f"{wc.word}, {wc.count}" for wc in words])
+
+    sorted_words = sorted(words, key=lambda wc: wc.count, reverse=True)
+
+    for wc in sorted_words:
+        if wc.count > 1:
+            print(f"{wc.word} appeared {wc.count} time(s).")

@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 from matplotlib.colors import Normalize
 from scipy import stats
-from scipy.interpolate import interp1d
 from functools import reduce
 import numpy as np
 

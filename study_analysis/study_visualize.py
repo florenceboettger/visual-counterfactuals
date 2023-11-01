@@ -4,6 +4,7 @@ from matplotlib.collections import PatchCollection
 from matplotlib.colors import Normalize
 import numpy as np
 import re
+import scipy.stats as stats
 
 from study import Study, Response, Referral
 
@@ -69,6 +70,46 @@ def visualize_familiarity(study: Study):
 
     plt.show()
 
+def visualize_familiarity_accuracy(study: Study, legend: str = None):
+    x = range(1, 6)
+
+    heights = []
+    colors = ["#4dac26", "#b8e186", "#f1b6da", "#d01c8b"]
+    
+    for v in [1, 1/3, -1/3, -1]:
+        heights.append([np.sum([np.count_nonzero([r.main_testing[i] * r.truth[i] == v and r.familiarity == f for r in study.responses]) for i in range(10)]) for f in range(1, 6)])
+
+    print(heights)
+
+    corr_x = [r.familiarity for r in study.responses]
+    corr_y = [r.average_accuracy() for r in study.responses]
+
+    pearson, pvalue = stats.pearsonr(corr_x, corr_y)
+
+    print(f"Person correlation is {pearson}, pvalue = {pvalue}")
+
+    for i, height in enumerate(heights):
+        bottom = np.zeros(5)
+        for j in range(i):
+            bottom += heights[j]
+        plt.bar(x, height, color=colors[i], bottom=bottom, edgecolor="black", width=0.75)
+
+    max_height = max(np.sum(heights, axis=0))
+    
+    if legend:
+        plt.legend(labels=["Correct (Certain)", "Correct (Uncertain)", "Incorrect (Uncertain)", "Incorrect (Certain)"], loc=legend, fontsize="large")
+
+    plt.xlabel("Familiarity", fontsize="large")
+    plt.xticks(x)
+    plt.ylabel("# Responses", fontsize="large")
+
+    plt.ylim(0, max_height + 1)
+
+    plt.savefig(f"../plots/user_study/familiarity_accuracy_{study.name}.png", dpi=500, bbox_inches='tight', pad_inches=0)
+    plt.savefig(f"../plots/user_study/familiarity_accuracy_{study.name}.pdf", dpi=500, bbox_inches='tight', pad_inches=0)
+
+    plt.show()
+
 def visualize_familiarity_correlation(studies: list[Study]):
     x = np.tile(np.arange(1, 6), 2)
     y = np.concatenate((np.full(5, -1), np.full(5, 1)))
@@ -97,6 +138,46 @@ def visualize_familiarity_correlation(studies: list[Study]):
         ax.set_yticklabels(['Incorrect', 'Correct'])
 
         ax.scatter(x, y, sizes=sizes[i])
+    
+def visualize_familiarity_correlation_bar(studies: list[Study]):
+    responses: list[Response] = []
+    for s in studies:
+        responses += s.responses
+        
+    x = range(1, 6)
+
+    heights = [[[np.count_nonzero([r.intro_responses[i] == b and r.familiarity == f for r in responses]) for f in range(1, 6)] for b in [True, False]] for i in range(3)]
+
+    print(heights)
+
+    colors = ["#4dac26", "#d01c8b"]
+
+    fig, axs = plt.subplots(3, constrained_layout=True, figsize=(6.4, 6.4), sharex=True)
+
+    for i, ax in enumerate(axs):
+        # ax.set_aspect(0.5)
+        ax.set_title(f"Question {i + 1}")
+        # ax.set_xlim(0.8, 5.2)
+        # ax.set_ylim(0, len(responses) + 0.5)
+        ax.set_xticks(range(1, 6))
+        ax.set_yticks([0, 5, 10])
+        if i == 2:
+            ax.set_xlabel("Familiarity")
+
+        ax.set_ylabel("# Responses")
+
+        for j, h in enumerate(heights[i]):
+            bottom = np.zeros(5)
+            for k in range(j):
+                bottom += heights[i][k]
+
+            ax.bar(x, h, color=colors[j], bottom=bottom, edgecolor="black")        
+
+        if i == 0:
+            ax.legend(labels=["Correct", "Incorrect"], fontsize="large")
+    
+    plt.savefig(f"../plots/user_study/familiarity_correlation_bar.png", dpi=500, bbox_inches='tight', pad_inches=0)
+    plt.savefig(f"../plots/user_study/familiarity_correlation_bar.pdf", dpi=500, bbox_inches='tight', pad_inches=0)
 
 def visualize_familiarity_count(studies: list[Study]):
     responses: list[Response] = []
@@ -129,7 +210,7 @@ def visualize_familiarity_count(studies: list[Study]):
         plt.bar(x, heights[types[i]], color=colors[i], bottom=bottom, edgecolor="black")
     
 
-    plt.legend(labels=types)
+    plt.legend(labels=types, fontsize="large")
 
     plt.xlabel("Familiarity")
     plt.ylabel("# Responses")

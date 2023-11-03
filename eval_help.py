@@ -4,27 +4,28 @@ from scipy import stats
 from functools import reduce
 import numpy as np
 
-def plot_study(study, name, is_resnet=False, print_others=True, print_pareto=True, map=lambda t: 0.8, other_study=None, print_colorbar=True, param_name="", split_simplify=False, labels=[""]):
+def plot_study(study, name, is_resnet=False, print_others=True, print_pareto=True, map=lambda t: 0.8, other_study=None, print_colorbar=True, param_name="", split_simplify=False, labels=[""], label_loc="upper left", switch_label=False):
     trials = [t for t in study.trials if t.values is not None and (t.number > 5 or not is_resnet)]
     norm = Normalize(0.0, np.ceil(max([map(t) for t in trials])))
     scatter = None
+    other_scatter = None
     if print_others:
         scatter = plt.scatter([t.values[0] for t in trials], [t.values[1] for t in trials], c=[map(t) for t in trials], cmap='Blues', linewidths=1.0, edgecolors='#000000', norm=norm, label=labels[0])
-    if print_pareto:
-        plt.scatter([t.values[0] for t in study.best_trials], [t.values[1] for t in study.best_trials], c=[map(t) for t in study.best_trials], cmap='Reds', linewidths=1.0, edgecolors='#000000', norm=norm, label="Pareto Front")
-        plt.legend(loc="upper left")
     if other_study is not None:
         other_trials = [t for t in other_study.trials if t.values is not None]
-        plt.scatter([t.values[0] for t in other_trials], [t.values[1] for t in other_trials], c=[map(t) for t in other_trials], cmap='Oranges', linewidths=1.0, edgecolors='#000000', norm=norm, label=labels[1])
-        plt.legend()
+        other_scatter = plt.scatter([t.values[0] for t in other_trials], [t.values[1] for t in other_trials], c=[map(t) for t in other_trials], cmap='Oranges', linewidths=1.0, edgecolors='#000000', norm=norm, label=labels[1])
+        plt.legend(loc=label_loc, handles=[other_scatter, scatter] if switch_label else [scatter, other_scatter], fontsize="xx-large")
+    if print_pareto:
+        plt.scatter([t.values[0] for t in study.best_trials], [t.values[1] for t in study.best_trials], c=[map(t) for t in study.best_trials], cmap='Reds', linewidths=1.0, edgecolors='#000000', norm=norm, label="Pareto Front")
+        plt.legend(loc=label_loc, fontsize="xx-large")
     if split_simplify:
         simplify_trials = [t for t in trials if t.params["parts_type"] == "minimize_head"]
         full_trials = [t for t in trials if t.params["parts_type"] != "minimize_head"]
         plt.scatter([t.values[0] for t in simplify_trials], [t.values[1] for t in simplify_trials], c=[0.8] * len(simplify_trials), cmap='Blues', norm=Normalize(0.0, 1.0), linewidths=1.0, edgecolors="black", label="Simplify")
         plt.scatter([t.values[0] for t in full_trials], [t.values[1] for t in full_trials], c="white", linewidths=1.0, edgecolors="black", label="Full")
-        plt.legend(loc="upper left")
-    plt.xlabel('KP')
-    plt.ylabel('Edits')
+        plt.legend(loc=label_loc, fontsize="xx-large")      
+    plt.xlabel('KP', fontsize="xx-large")
+    plt.ylabel('Edits', fontsize="xx-large")
     if print_colorbar:
         cb = plt.colorbar(scatter)
         cb.set_label(param_name, rotation=0, labelpad=20, y=0.5)
@@ -181,8 +182,8 @@ def plot_runtime(results, name):
 
     # plt.plot(x, p(x), color="red", linestyle="--", linewidth=2)
 
-    plt.xlabel('Iteration')
-    plt.ylabel('Runtime in seconds')
+    plt.xlabel('Iteration', fontsize="xx-large")
+    plt.ylabel('Runtime in seconds', fontsize="xx-large")
     
     plt.savefig(f"plots/{name}.png", dpi=500, bbox_inches='tight', pad_inches=0)
     plt.savefig(f"plots/{name}.pdf", dpi=500, bbox_inches='tight', pad_inches=0)
@@ -197,8 +198,8 @@ def plot_runtime_per_edit(results, name):
     p = np.poly1d(fit)
     # plt.plot(x, p(x), color="red", linestyle="--", linewidth=2)
 
-    plt.xlabel('Iteration')
-    plt.ylabel('Runtime per edit in seconds')
+    plt.xlabel('Iteration', fontsize="xx-large")
+    plt.ylabel('Runtime per edit in seconds', fontsize="xx-large")
     
     plt.savefig(f"plots/{name}.png", dpi=500, bbox_inches='tight', pad_inches=0)
     plt.savefig(f"plots/{name}.pdf", dpi=500, bbox_inches='tight', pad_inches=0)
@@ -210,8 +211,8 @@ def plot_runtime_edits(results, name):
 
     plt.scatter(x, y, linewidths=1.0, edgecolors='#000000')
 
-    plt.xlabel('Edits')
-    plt.ylabel('Runtime in seconds')
+    plt.xlabel('Edits', fontsize="xx-large")
+    plt.ylabel('Runtime in seconds', fontsize="xx-large")
     
     plt.savefig(f"plots/{name}.png", dpi=500, bbox_inches='tight', pad_inches=0)
     plt.savefig(f"plots/{name}.pdf", dpi=500, bbox_inches='tight', pad_inches=0)

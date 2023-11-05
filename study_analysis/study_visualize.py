@@ -8,7 +8,11 @@ import scipy.stats as stats
 
 from study import Study, Response, Referral
 
+def set_dims():    
+    plt.figure(figsize=(6.4, 4.8), dpi=100)
+
 def visualize_responses(study: Study):
+
     x = (np.arange(40) // 4)
     y = np.tile(np.array([-1, -1/3, 1/3, 1]), 10)
     
@@ -18,6 +22,9 @@ def visualize_responses(study: Study):
     x = x + 1
 
     fig, ax = plt.subplots()
+    fig.dpi = 100
+    fig.set_figwidth(6.4)
+    fig.set_figheight(4.8)
 
     # ax.set_box_aspect(1)
 
@@ -39,6 +46,8 @@ def visualize_responses(study: Study):
     plt.show()
 
 def visualize_main_results(study: Study, show_individual: bool):
+    set_dims()
+
     valid_study = study.create_valid_responses()
     print(f"Number of valid responses: {len(valid_study.responses)} out of {len(study.responses)}")
 
@@ -53,12 +62,16 @@ def visualize_main_results(study: Study, show_individual: bool):
             print(r.mental_model)
 
 def visualize_familiarity(study: Study):
+
     x = [r.familiarity for r in study.responses]
     y = [r.average_accuracy() for r in study.responses]
 
     sizes = np.array([np.count_nonzero([k == i and l == j for k, l in zip(x, y)]) for i, j in zip(x, y)]) * 25
 
     fig, ax = plt.subplots()
+    fig.dpi = 100
+    fig.set_figwidth(6.4)
+    fig.set_figheight(4.8)
 
     ax.scatter(x, y, sizes=sizes)
     plt.suptitle(f"{study.name} (Familiarity)")
@@ -71,6 +84,8 @@ def visualize_familiarity(study: Study):
     plt.show()
 
 def visualize_familiarity_accuracy(study: Study, legend: str = None):
+    set_dims()
+
     x = range(1, 6)
 
     heights = []
@@ -78,8 +93,6 @@ def visualize_familiarity_accuracy(study: Study, legend: str = None):
     
     for v in [1, 1/3, -1/3, -1]:
         heights.append([np.sum([np.count_nonzero([r.main_testing[i] * r.truth[i] == v and r.familiarity == f for r in study.responses]) for i in range(10)]) for f in range(1, 6)])
-
-    print(heights)
 
     corr_x = [r.familiarity for r in study.responses]
     corr_y = [r.average_accuracy() for r in study.responses]
@@ -102,10 +115,6 @@ def visualize_familiarity_accuracy(study: Study, legend: str = None):
     plt.xlabel("Familiarity", fontsize="xx-large")
     plt.xticks(x)
     plt.ylabel("# Responses", fontsize="xx-large")
-
-    print(plt.figure().get_size_inches()*plt.figure().dpi)
-    print(plt.figure().dpi)
-    print(plt.figure().get_size_inches())
 
     plt.ylim(0, max_height + 1)
 
@@ -131,6 +140,9 @@ def visualize_familiarity_correlation(studies: list[Study]):
     sizes *= 70 / num_responses
 
     fig, axs = plt.subplots(3, constrained_layout=True)
+    fig.dpi = 100
+    fig.set_figwidth(6.4)
+    fig.set_figheight(4.8)
     # fig.tight_layout()
 
     for i, ax in enumerate(axs):
@@ -157,6 +169,9 @@ def visualize_familiarity_correlation_bar(studies: list[Study]):
     colors = ["#4dac26", "#d01c8b"]
 
     fig, axs = plt.subplots(3, constrained_layout=True, figsize=(6.4, 6.4), sharex=True)
+    fig.dpi = 100
+    fig.set_figwidth(6.4)
+    fig.set_figheight(4.8)
 
     for i, ax in enumerate(axs):
         # ax.set_aspect(0.5)
@@ -184,6 +199,8 @@ def visualize_familiarity_correlation_bar(studies: list[Study]):
     plt.savefig(f"../plots/user_study/familiarity_correlation_bar.pdf", dpi=500, bbox_inches='tight', pad_inches=0)
 
 def visualize_familiarity_count(studies: list[Study]):
+    set_dims()
+    
     responses: list[Response] = []
     for s in studies:
         print(f"Study {s.name} received {len(s.responses)} responses.")
@@ -233,6 +250,8 @@ def count_answers(study: Study, query: str = "\S"):
     print(f"Study {study.name} has {count} matches for query {query}.")
 
 def visualize_accuracy(study: Study, max_count, legend: str):
+    set_dims()
+
     colors = ["#4dac26", "#b8e186", "#f1b6da", "#d01c8b"]
 
     x = range(1, 11)

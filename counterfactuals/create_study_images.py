@@ -164,6 +164,9 @@ def main():
 
         query_img = dataset.__getitem__(query_index)
         distractor_img = dataset.__getitem__(distractor_index)
+
+        save_image(query_img, os.path.join(output_path, f"query_{i}.png"))
+        save_image(distractor_img, os.path.join(output_path, f"distractor_{i}.png"))
         
         edit = counterfactuals[query_index]["edits"][0]
         

@@ -73,9 +73,11 @@ class Response:
         return np.count_nonzero(np.array([r * t for r, t in zip(self.main_testing, self.truth)]) > 0) / len(self.main_testing)
     
     def print_explanations(self):
+        print(f"Familiarity: {self.familiarity}")
         for i, s in enumerate(self.main_explanations):
             print(f"Question {i + 1}: Correct: {self.truth[i]}; Answer: {self.main_testing[i]}, {s}")
 
+        print(f"Average accuracy: {self.average_accuracy()}")
         print(f"Mental Model: {self.mental_model}")
 
 class Study():

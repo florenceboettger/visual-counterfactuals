@@ -5,6 +5,7 @@ from functools import reduce
 import numpy as np
 
 def plot_study(study, name, is_resnet=False, print_others=True, print_pareto=True, map=lambda t: 0.8, other_study=None, print_colorbar=True, param_name="", split_simplify=False, labels=[""], label_loc="upper left", switch_label=False):
+    plt.figure(figsize=(6.4, 4.8), dpi=100)
     trials = [t for t in study.trials if t.values is not None and (t.number > 5 or not is_resnet)]
     norm = Normalize(0.0, np.ceil(max([map(t) for t in trials])))
     scatter = None

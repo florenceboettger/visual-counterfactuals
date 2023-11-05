@@ -103,6 +103,10 @@ def visualize_familiarity_accuracy(study: Study, legend: str = None):
     plt.xticks(x)
     plt.ylabel("# Responses", fontsize="xx-large")
 
+    print(plt.figure().get_size_inches()*plt.figure().dpi)
+    print(plt.figure().dpi)
+    print(plt.figure().get_size_inches())
+
     plt.ylim(0, max_height + 1)
 
     plt.savefig(f"../plots/user_study/familiarity_accuracy_{study.name}.png", dpi=500, bbox_inches='tight', pad_inches=0)

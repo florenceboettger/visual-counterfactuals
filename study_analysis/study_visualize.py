@@ -30,7 +30,7 @@ def visualize_responses(study: Study):
     # ax.scatter(x, y, edgecolors="black", c=colors, cmap='Blues', norm=Normalize(0.0, max(colors)))
     plt.xticks(np.arange(1, 11))
     plt.yticks([-1, -1/3, 1/3, 1], labels=['Beta (Certain)', 'Beta (Uncertain)', 'Alpha (Uncertain)', 'Alpha (Certain)'])
-    plt.xlabel("Question", fontsize="large")
+    plt.xlabel("Question", fontsize="xx-large")
     # plt.ylabel("Answer")
     
     plt.savefig(f"../plots/user_study/accuracy_{study.name}.png", dpi=500, bbox_inches='tight', pad_inches=0)
@@ -97,11 +97,11 @@ def visualize_familiarity_accuracy(study: Study, legend: str = None):
     max_height = max(np.sum(heights, axis=0))
     
     if legend:
-        plt.legend(labels=["Correct (Certain)", "Correct (Uncertain)", "Incorrect (Uncertain)", "Incorrect (Certain)"], loc=legend, fontsize="large")
+        plt.legend(labels=["Correct (Certain)", "Correct (Uncertain)", "Incorrect (Uncertain)", "Incorrect (Certain)"], loc=legend, fontsize="x-large")
 
-    plt.xlabel("Familiarity", fontsize="large")
+    plt.xlabel("Familiarity", fontsize="xx-large")
     plt.xticks(x)
-    plt.ylabel("# Responses", fontsize="large")
+    plt.ylabel("# Responses", fontsize="xx-large")
 
     plt.ylim(0, max_height + 1)
 
@@ -162,9 +162,9 @@ def visualize_familiarity_correlation_bar(studies: list[Study]):
         ax.set_xticks(range(1, 6))
         ax.set_yticks([0, 5, 10])
         if i == 2:
-            ax.set_xlabel("Familiarity", fontsize="large")
+            ax.set_xlabel("Familiarity", fontsize="xx-large")
 
-        ax.set_ylabel("# Responses", fontsize="large")
+        ax.set_ylabel("# Responses", fontsize="xx-large")
 
         for j, h in enumerate(heights[i]):
             bottom = np.zeros(5)
@@ -174,7 +174,7 @@ def visualize_familiarity_correlation_bar(studies: list[Study]):
             ax.bar(x, h, color=colors[j], bottom=bottom, edgecolor="black")        
 
         if i == 0:
-            ax.legend(labels=["Correct", "Incorrect"], fontsize="large")
+            ax.legend(labels=["Correct", "Incorrect"], fontsize="x-large")
     
     plt.savefig(f"../plots/user_study/familiarity_correlation_bar.png", dpi=500, bbox_inches='tight', pad_inches=0)
     plt.savefig(f"../plots/user_study/familiarity_correlation_bar.pdf", dpi=500, bbox_inches='tight', pad_inches=0)
@@ -210,10 +210,10 @@ def visualize_familiarity_count(studies: list[Study]):
         plt.bar(x, heights[types[i]], color=colors[i], bottom=bottom, edgecolor="black")
     
 
-    plt.legend(labels=types, fontsize="large")
+    plt.legend(labels=types, fontsize="x-large")
 
-    plt.xlabel("Familiarity", fontsize="large")
-    plt.ylabel("# Responses", fontsize="large")
+    plt.xlabel("Familiarity", fontsize="xx-large")
+    plt.ylabel("# Responses", fontsize="xx-large")
     
     plt.savefig(f"../plots/user_study/familiarity_count.png", dpi=500, bbox_inches='tight', pad_inches=0)
     plt.savefig(f"../plots/user_study/familiarity_count.pdf", dpi=500, bbox_inches='tight', pad_inches=0)
@@ -244,11 +244,11 @@ def visualize_accuracy(study: Study, max_count, legend: str):
         plt.bar(x, height, color=colors[i], bottom=bottom, edgecolor="black", width=0.75)
 
     if legend:
-        plt.legend(labels=["Correct (Certain)", "Correct (Uncertain)", "Incorrect (Uncertain)", "Incorrect (Certain)"], loc=legend, fontsize="large")
+        plt.legend(labels=["Correct (Certain)", "Correct (Uncertain)", "Incorrect (Uncertain)", "Incorrect (Certain)"], loc=legend, fontsize="x-large")
 
-    plt.xlabel("Question", fontsize="large")
+    plt.xlabel("Question", fontsize="xx-large")
     plt.xticks(x)
-    plt.ylabel("# Responses", fontsize="large")
+    plt.ylabel("# Responses", fontsize="xx-large")
     plt.yticks(range(0, len(study.responses) + 1))
 
     plt.ylim(0, max_count + 0.5)

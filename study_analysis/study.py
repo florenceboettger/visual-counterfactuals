@@ -74,8 +74,7 @@ class Response:
     
     def print_explanations(self):
         for i, s in enumerate(self.main_explanations):
-            if s != "":
-                print(f"Question {i + 1}: {s}")
+            print(f"Question {i + 1}: Correct: {self.truth[i]}; Answer: {self.main_testing[i]}, {s}")
 
         print(f"Mental Model: {self.mental_model}")
 
@@ -137,7 +136,7 @@ class Study():
         accuracies = []
         for i, response in enumerate(self.responses):
             accuracy = response.average_accuracy()
-            # print(f"Response {i} of study {self.name} has an accuracy of {accuracy}")
+            print(f"Response {i} of study {self.name} has an accuracy of {accuracy}")
             
             accuracies.append(accuracy)
         

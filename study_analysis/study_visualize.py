@@ -242,12 +242,23 @@ def visualize_familiarity_count(studies: list[Study]):
 def count_answers(study: Study, query: str = "\S"):
     count = 0
     for r in study.responses:
+        if re.search(query, r.mental_model, flags=re.IGNORECASE):
+            count += 1
+            continue
         for e in r.main_explanations:
             if re.search(query, e, flags=re.IGNORECASE):
                 count += 1
                 break
 
     print(f"Study {study.name} has {count} matches for query {query}.")
+
+def count_mental_models(study: Study, query: str = "\S"):
+    count = 0
+    for r in study.responses:
+        if re.search(query, r.mental_model, flags=re.IGNORECASE):
+            count += 1
+
+    print(f"Study {study.name} has {count} matches in the mental models for query {query}.")
 
 def visualize_accuracy(study: Study, max_count, legend: str):
     set_dims()

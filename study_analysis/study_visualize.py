@@ -313,7 +313,7 @@ def compare_answers(responses: list[Response]):
     words: list[WordCount] = []
     for r in responses:
         answer_words: list[str] = []
-        for answer in r.main_explanations:
+        for answer in r.main_explanations + [r.mental_model]:
             modified_answer = re.sub("colour", "color", answer, flags=re.IGNORECASE)
             modified_answer = re.sub("grey", "gray", modified_answer, flags=re.IGNORECASE)
             modified_answer = re.sub("schnabel", "bill", modified_answer, flags=re.IGNORECASE)

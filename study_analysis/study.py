@@ -19,12 +19,16 @@ class Response:
     referral_text: str
     referral_type: Referral
     truth: list[float]
+    age: int
+    gender: str
+    location: str
+    education: str
 
     referral_calculation = {
         Referral.UNIVERSITY: lambda s: s == "HPI Infoschleuder",
         Referral.BIOLOGY: lambda s: s == "Uni Potsdam FSR",
         Referral.BIRD_FORUMS: lambda s: s in ["/r/whatsthisbird", "Reddit birding", "Reddit - Ornithology", "Reddit - General", "Reddit - What’s this bird"]
-}
+    }
 
     intro_truth = [
         "Ruby-throated Hummingbird",
@@ -65,6 +69,10 @@ class Response:
             if c(self.referral_text): 
                 self.referral_type = type
         self.truth = truth
+        self.gender = raw_response["gender"]
+        self.age = int(raw_response["age"])
+        self.location = raw_response["location"]
+        self.education = raw_response["education"]
 
     def has_valid_initial_test(self):
         return all(i == 0 for i in self.initial_testing)

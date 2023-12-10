@@ -179,29 +179,6 @@ class Cub(Dataset):
                 6: "tail",
             }
 
-        '''parts_name_remap = {
-            "back": "back",
-            "beak": "none",
-            "belly": "none",
-            "breast": "none",
-            "crown": "none",
-            "forehead": "none",
-            "left eye": "none",
-            "left leg": "none",
-            "left wing": "none",
-            "nape": "none",
-            "right eye": "none",
-            "right leg": "none",
-            "right wing": "none",
-            "tail": "none",
-            "throat": "none",
-        }
-
-        self._parts_name_index = {
-            0: "back",
-            -1: "none"
-        }'''
-
         self._inverse_parts_name_index = {
             value: key for key, value in self._parts_name_index.items()
         }

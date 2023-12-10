@@ -3,6 +3,8 @@ from matplotlib.colors import Normalize
 from scipy import stats
 from functools import reduce
 import numpy as np
+import pandas as pd
+import re
 
 def plot_study(study, name, is_resnet=False, print_others=True, print_pareto=True, map=lambda t: 0.8, other_study=None, print_colorbar=True, param_name="", split_simplify=False, labels=[""], label_loc="upper left", switch_label=False):
     plt.figure(figsize=(6.4, 4.8), dpi=100)
@@ -76,7 +78,7 @@ def study_pearson(study, hyperparams):
     x, y = get_study_values(study, hyperparams)
     return get_pearson(x, y)
 
-def evaluate_results_spearman(results):
+def evaluate_results_spearman(results, name):
     relevant_attributes = [
         "avg_edits",
         "eval_single_near",
@@ -84,17 +86,27 @@ def evaluate_results_spearman(results):
         "eval_all_near",
         "eval_all_same",
     ]
-    x = [[float(r[att]) for att in relevant_attributes] for r in results]
-    spearman, pvalue =  stats.spearmanr(x)
+    x = [[float(r[att]) if att != "avg_edits" else -float(r[att]) for att in relevant_attributes] for r in results]
+    spearman, pvalue = stats.spearmanr(x)
+    corr_dict = {"metric": [re.sub(r'_', ' ', a) for a in relevant_attributes]}
     for i, att in enumerate(relevant_attributes):
-        corr_string = reduce(lambda a, b: f"{a}, {b}", spearman[i])
-        print(f"{att} Spearman correlation is {corr_string}")
+        new_att = re.sub(r'_', ' ', att)
+        corr_dict[new_att] = [f"{n:.2f}" for n in spearman[i]]
+        corr_string = reduce(lambda a, b: f"{a}, {b}", corr_dict[new_att])
+        print(f"{new_att} Spearman correlation is {corr_string}")
+
+    pd.DataFrame(corr_dict).to_csv(f"data/{name}_results_spearman.csv", index=False)
 
     print("")
 
+    pvalue_dict = {"metric": [re.sub(r'_', ' ', a) for a in relevant_attributes]}
     for i, att in enumerate(relevant_attributes):        
-        pvalue_string = reduce(lambda a, b: f"{a}, {b}", pvalue[i])
-        print(f"{att} Spearman pvalue is {pvalue_string}")
+        new_att = re.sub(r'_', ' ', att)
+        pvalue_dict[new_att] = ["0.001" if n < 0.001 and i != j else f"{n:.3f}" for j, n in enumerate(pvalue[i])]  
+        pvalue_string = reduce(lambda a, b: f"{a}, {b}", pvalue_dict[new_att])
+        print(f"{new_att} Spearman pvalue is {pvalue_string}")
+
+    pd.DataFrame(pvalue_dict).to_csv(f"data/{name}_results_spearman_pvalue.csv", index=False)
 
 def evaluate_results_pearson(results):
     relevant_attributes = [

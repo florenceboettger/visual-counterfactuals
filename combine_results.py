@@ -2,7 +2,15 @@ import os
 import csv
 import re
 
-def combine_results(name, results_path="//store-01.hpi.uni-potsdam.de/fg/doellner/florence.boettger/counterfactuals/output/new_results"):
+def combine_results(name, results_path="//store-01.hpi.uni-potsdam.de/fg/doellner/florence.boettger/counterfactuals/output/new_results", overwrite=False):
+    if os.path.exists(os.path.join(results_path, "combined", f"{name}.csv")) and not overwrite:
+        with open(os.path.join(results_path, "combined", f"{name}.csv"), "r") as f:
+            reader = csv.DictReader(f)
+            results = []
+            for row in reader:
+                results.append(row)
+            return results
+
     files = [os.path.join(results_path, f) for f in os.listdir(results_path) if re.search(f"^{name}_\d*.csv$", f)]
 
     results = []

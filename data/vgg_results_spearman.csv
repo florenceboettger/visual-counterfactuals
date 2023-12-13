@@ -1,0 +1,6 @@
+metric,avg edits,eval single near,eval single same,eval all near,eval all same
+avg edits,1.00,-1.00,-0.99,-1.00,-0.99
+eval single near,-1.00,1.00,1.00,1.00,1.00
+eval single same,-0.99,1.00,1.00,0.99,1.00
+eval all near,-1.00,1.00,0.99,1.00,0.99
+eval all same,-0.99,1.00,1.00,0.99,1.00

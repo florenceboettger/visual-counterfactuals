@@ -116,12 +116,14 @@ def visualize_familiarity_accuracy(study: Study, legend: str = None):
     plt.xticks(x)
     plt.ylabel("# Responses", fontsize="xx-large")
 
-    plt.ylim(0, max_height + 1)
+    plt.ylim(0, 31)
 
     plt.savefig(f"../plots/user_study/familiarity_accuracy_{study.name}.png", dpi=500, bbox_inches='tight', pad_inches=0)
     plt.savefig(f"../plots/user_study/familiarity_accuracy_{study.name}.pdf", dpi=500, bbox_inches='tight', pad_inches=0)
 
     plt.show()
+
+    return spearman, pvalue
 
 def visualize_familiarity_correlation(studies: list[Study]):
     x = np.tile(np.arange(1, 6), 2)

@@ -5,6 +5,7 @@ from functools import reduce
 import numpy as np
 import pandas as pd
 import re
+from numpy.lib.stride_tricks import sliding_window_view
 
 def plot_study(study, name, is_resnet=False, print_others=True, print_pareto=True, map=lambda t: 0.8, other_study=None, print_colorbar=True, param_name="", split_simplify=False, labels=[""], label_loc="upper left", switch_label=False):
     plt.figure(figsize=(6.4, 4.8), dpi=100)
@@ -55,9 +56,21 @@ def print_correlation(correlation, pvalues, hyperparams, offset=0):
         print(f"{x_name} correlation is: {correlation[i][offset]} on KP, {correlation[i][offset + 1]} on edits.")
         print(f"{x_name} pvalue is: {pvalues[i][offset]} on KP, {pvalues[i][offset + 1]} on edits.")
 
-def analyze_spearman(study, hyperparams):
+def analyze_spearman(study, hyperparams, name):
     spearman = study_spearman(study, hyperparams)
-    print_correlation(spearman.correlation, spearman.pvalue, hyperparams, len(hyperparams))
+    dict = {"param": ["kp", "p kp", "edits", "p edits"]}
+    offset = len(hyperparams)
+    for i in range(len(hyperparams)):
+        p = re.sub(r'_', ' ', hyperparams[i])
+        dict[p] = [
+            transform_corr(spearman.correlation[i][offset]),
+            transform_pvalue(spearman.pvalue[i][offset]),
+            transform_corr(-spearman.correlation[i][offset + 1]),
+            transform_pvalue(spearman.pvalue[i][offset + 1])]
+
+    pd.DataFrame(dict).set_index("param").T.to_csv(f"data/{name}_params_spearman.csv", index_label="param")
+
+    print_correlation(spearman.correlation, spearman.pvalue, hyperparams, offset)
 
 
 def study_spearman(study, hyperparams):
@@ -78,6 +91,12 @@ def study_pearson(study, hyperparams):
     x, y = get_study_values(study, hyperparams)
     return get_pearson(x, y)
 
+def transform_corr(r):
+    return f"{r:.2f}"
+
+def transform_pvalue(p, check=True):
+    return "0.001" if p < 0.001 and check else f"{p:.3f}" 
+
 def evaluate_results_spearman(results, name):
     relevant_attributes = [
         "avg_edits",
@@ -91,7 +110,7 @@ def evaluate_results_spearman(results, name):
     corr_dict = {"metric": [re.sub(r'_', ' ', a) for a in relevant_attributes]}
     for i, att in enumerate(relevant_attributes):
         new_att = re.sub(r'_', ' ', att)
-        corr_dict[new_att] = [f"{n:.2f}" for n in spearman[i]]
+        corr_dict[new_att] = [transform_corr(r) for r in spearman[i]]
         corr_string = reduce(lambda a, b: f"{a}, {b}", corr_dict[new_att])
         print(f"{new_att} Spearman correlation is {corr_string}")
 
@@ -102,7 +121,7 @@ def evaluate_results_spearman(results, name):
     pvalue_dict = {"metric": [re.sub(r'_', ' ', a) for a in relevant_attributes]}
     for i, att in enumerate(relevant_attributes):        
         new_att = re.sub(r'_', ' ', att)
-        pvalue_dict[new_att] = ["0.001" if n < 0.001 and i != j else f"{n:.3f}" for j, n in enumerate(pvalue[i])]  
+        pvalue_dict[new_att] = [transform_pvalue(p, i != j) for j, p in enumerate(pvalue[i])]  
         pvalue_string = reduce(lambda a, b: f"{a}, {b}", pvalue_dict[new_att])
         print(f"{new_att} Spearman pvalue is {pvalue_string}")
 
@@ -189,6 +208,12 @@ def plot_runtime(results, name):
     x = range(len(results))
     y = [float(r["time"]) for r in results]
     plt.plot(x, y)
+
+    window = 11
+    rolling_average = sliding_window_view(y, window).mean(axis=-1)
+    rolling_x = range((window - 1) / 2, len(results) - (window - 1) / 2)
+
+    plt.plot(rolling_x, rolling_average, color="red", linestyle="--", linewidth=2)
 
     fit = np.polyfit(x, y, 1)
     p = np.poly1d(fit)

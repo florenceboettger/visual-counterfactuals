@@ -4,7 +4,7 @@ import numpy as np
 from enum import Enum
     
 class Referral(Enum):
-    UNIVERSITY = "University E-mail"
+    UNIVERSITY = "Institute"
     BIOLOGY = "Biology E-mail"
     BIRD_FORUMS = "Bird Forums"
     OTHER = "Other"
